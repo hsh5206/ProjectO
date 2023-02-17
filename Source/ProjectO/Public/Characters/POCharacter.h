@@ -50,6 +50,7 @@ public:
 	void Sprint();
 	void SprintEnd();
 	void LockOn();
+	void ChangeLockOn();
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float Input_FB;

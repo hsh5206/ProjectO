@@ -81,7 +81,7 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("Sprint"), EInputEvent::IE_Pressed, this, &APOCharacter::Sprint);
 	PlayerInputComponent->BindAction(FName("Sprint"), EInputEvent::IE_Released, this, &APOCharacter::SprintEnd);
 	PlayerInputComponent->BindAction(FName("LockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::LockOn);
-
+	PlayerInputComponent->BindAction(FName("ChangeLockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::ChangeLockOn);
 }
 
 void APOCharacter::MoveForward(float value)
@@ -191,7 +191,6 @@ void APOCharacter::LockOn()
 	FVector End = UKismetMathLibrary::Add_VectorVector(UKismetMathLibrary::Multiply_VectorFloat(Camera->GetForwardVector(), 1000.f), Start);
 
 	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
 
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
 	TEnumAsByte<EObjectTypeQuery> Pawn = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn);
@@ -203,7 +202,7 @@ void APOCharacter::LockOn()
 		this,
 		Start,
 		End,
-		300.f,
+		400.f,
 		ObjectTypes,
 		false,
 		ActorsToIgnore,
@@ -225,6 +224,41 @@ void APOCharacter::LockOn()
 		}
 		LockedOnEnemy = Cast<APawn>(SphereHit.GetActor());
 		CombatState = ECombatState::ECS_LockOn;
+	}
+}
+
+void APOCharacter::ChangeLockOn()
+{
+	if (CombatState != ECombatState::ECS_LockOn) return;
+
+	FVector Start = GetActorLocation();
+	FVector End = GetActorLocation();
+
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(LockedOnEnemy);
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
+	TEnumAsByte<EObjectTypeQuery> Pawn = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn);
+	ObjectTypes.Add(Pawn);
+
+	FHitResult SphereHit;
+
+	UKismetSystemLibrary::SphereTraceSingleForObjects(
+		this,
+		Start,
+		End,
+		800.f,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		SphereHit,
+		true
+	);
+
+	if (SphereHit.GetActor())
+	{
+		LockedOnEnemy = Cast<APawn>(SphereHit.GetActor());
 	}
 }
 
