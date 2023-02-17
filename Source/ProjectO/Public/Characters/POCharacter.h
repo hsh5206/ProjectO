@@ -35,6 +35,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FVector GetDesiredVelocity();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	APawn* LockedOnEnemy;
+
 	/** Callbacks by Input */
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -46,8 +49,11 @@ public:
 	void EquipUnequip();
 	void Sprint();
 	void SprintEnd();
+	void LockOn();
 
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float Input_FB;
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float Input_RL;
 	
 	UPROPERTY(BlueprintReadOnly, Category = Movement)

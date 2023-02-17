@@ -8,6 +8,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/Character.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #include "Items/Weapon.h"
 
@@ -79,6 +80,7 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("EquipUnequip"), EInputEvent::IE_Pressed, this, &APOCharacter::EquipUnequip);
 	PlayerInputComponent->BindAction(FName("Sprint"), EInputEvent::IE_Pressed, this, &APOCharacter::Sprint);
 	PlayerInputComponent->BindAction(FName("Sprint"), EInputEvent::IE_Released, this, &APOCharacter::SprintEnd);
+	PlayerInputComponent->BindAction(FName("LockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::LockOn);
 
 }
 
@@ -136,37 +138,94 @@ void APOCharacter::EquipUnequip()
 		{
 			AnimInstance->Montage_Play(EquipMontage, 1.5f);
 			AnimInstance->Montage_JumpToSection(FName("Equip"), EquipMontage);
+			CombatState = ECombatState::ECS_Armed;
 		}
 		else
 		{
 			AnimInstance->Montage_Play(EquipMontage, 1.5f);
 			AnimInstance->Montage_JumpToSection(FName("Unequip"), EquipMontage);
+			CombatState = ECombatState::ECS_Unarmed;
+
+			if (LockedOnEnemy)
+			{
+				LockedOnEnemy = nullptr;
+			}
 		}
 	}
 }
 
 void APOCharacter::AttachWeapon()
 {
-	if (CombatState == ECombatState::ECS_Unarmed)
+	if (CombatState == ECombatState::ECS_Armed || CombatState == ECombatState::ECS_LockOn)
 	{
 		Weapon->AttachMeshToSocket(GetMesh(), FName("HandWeaponSocket"));
-		CombatState = ECombatState::ECS_Armed;
 	}
 	else
 	{
 		Weapon->AttachMeshToSocket(GetMesh(), FName("BackWeaponSocket"));
-		CombatState = ECombatState::ECS_Unarmed;
 	}
 }
 
 void APOCharacter::Sprint()
 {
+	if (CombatState == ECombatState::ECS_LockOn) return;
 	MovementState = EMovementState::EMS_Sprinting;
 }
 
 void APOCharacter::SprintEnd()
 {
+	if (CombatState == ECombatState::ECS_LockOn) return;
 	MovementState = EMovementState::EMS_Running;
+}
+
+void APOCharacter::LockOn()
+{
+	if (CombatState == ECombatState::ECS_LockOn)
+	{
+		CombatState = ECombatState::ECS_Armed;
+		LockedOnEnemy = nullptr;
+		return;
+	}
+
+	FVector Start = GetActorLocation();
+	FVector End = UKismetMathLibrary::Add_VectorVector(UKismetMathLibrary::Multiply_VectorFloat(Camera->GetForwardVector(), 1000.f), Start);
+
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes; // 히트 가능한 오브젝트 유형들.
+	TEnumAsByte<EObjectTypeQuery> Pawn = UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn);
+	ObjectTypes.Add(Pawn);
+
+	FHitResult SphereHit;
+
+	UKismetSystemLibrary::SphereTraceSingleForObjects(
+		this,
+		Start,
+		End,
+		300.f,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		SphereHit,
+		true
+	);
+
+	if (SphereHit.GetActor())
+	{
+		if (CombatState == ECombatState::ECS_Unarmed)
+		{
+			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+			if (AnimInstance && EquipMontage)
+			{
+				AnimInstance->Montage_Play(EquipMontage, 1.5f);
+				AnimInstance->Montage_JumpToSection(FName("Equip"), EquipMontage);
+			}
+		}
+		LockedOnEnemy = Cast<APawn>(SphereHit.GetActor());
+		CombatState = ECombatState::ECS_LockOn;
+	}
 }
 
 FVector APOCharacter::GetDesiredVelocity()
@@ -174,9 +233,9 @@ FVector APOCharacter::GetDesiredVelocity()
 	FRotator ControlRotation = GetControlRotation();
 	FVector Velocity = \
 		UKismetMathLibrary::Add_VectorVector(\
-		UKismetMathLibrary::Multiply_VectorFloat(UKismetMathLibrary::GetForwardVector(ControlRotation), Input_FB), \
-		UKismetMathLibrary::Multiply_VectorFloat(UKismetMathLibrary::GetRightVector(ControlRotation), Input_RL) \
+		UKismetMathLibrary::Multiply_VectorFloat(FVector(UKismetMathLibrary::GetForwardVector(ControlRotation)), Input_FB), \
+		UKismetMathLibrary::Multiply_VectorFloat(FVector(UKismetMathLibrary::GetRightVector(ControlRotation)), Input_RL) \
 		);
-
+	Velocity.Normalize();
 	return Velocity;
 }

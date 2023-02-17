@@ -15,4 +15,5 @@ enum class ECombatState : uint8
 {
 	ECS_Unarmed UMETA(DisplayName = "Unarmed"),
 	ECS_Armed UMETA(DisplayName = "Armed"),
+	ECS_LockOn UMETA(Displayname = "LockOn")
 };
