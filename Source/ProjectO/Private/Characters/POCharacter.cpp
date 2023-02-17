@@ -168,6 +168,9 @@ void APOCharacter::Dodge()
 	if (MovementState == EMovementState::EMS_Jumping) return;
 	if (MovementState == EMovementState::EMS_Dodging) return;
 
+	MovementState = EMovementState::EMS_Dodging;
+	if (CombatState == ECombatState::ECS_Unarmed) return;
+
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && DodgeMontage)
 	{
@@ -178,7 +181,6 @@ void APOCharacter::Dodge()
 		{
 			AnimInstance->Montage_JumpToSection(Way, DodgeMontage);
 		}
-		MovementState = EMovementState::EMS_Dodging;
 	}
 }
 
