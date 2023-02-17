@@ -17,3 +17,12 @@ enum class ECombatState : uint8
 	ECS_Armed UMETA(DisplayName = "Armed"),
 	ECS_LockOn UMETA(Displayname = "LockOn")
 };
+
+struct FDodgeDirection
+{
+public:
+	bool bFront = true;
+	bool bBack = false;
+	bool bRight = false;
+	bool bLeft = false;
+};

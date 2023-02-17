@@ -63,6 +63,17 @@ void APOCharacter::Tick(float DeltaTime)
 	{
 		bIsMoving = true;
 	}
+
+	if (CombatState == ECombatState::ECS_LockOn)
+	{
+		float distance = GetDistanceTo(LockedOnEnemy);
+		if (distance > 1500.f)
+		{
+			CombatState = ECombatState::ECS_Armed;
+			LockedOnEnemy = nullptr;
+		}
+	}
+
 }
 
 void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -82,16 +93,52 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("Sprint"), EInputEvent::IE_Released, this, &APOCharacter::SprintEnd);
 	PlayerInputComponent->BindAction(FName("LockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::LockOn);
 	PlayerInputComponent->BindAction(FName("ChangeLockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::ChangeLockOn);
+	PlayerInputComponent->BindAction(FName("Attack"), EInputEvent::IE_Pressed, this, &APOCharacter::Attack);
+
 }
 
 void APOCharacter::MoveForward(float value)
 {
 	Input_FB = value;
+
+	/** Dodge Direction */
+	if (value > 0.f)
+	{
+		DodgeDirection.bFront = true;
+		DodgeDirection.bBack = false;
+	}
+	else if (value < 0.f)
+	{
+		DodgeDirection.bFront = false;
+		DodgeDirection.bBack = true;
+	}
+	else
+	{
+		DodgeDirection.bFront = false;
+		DodgeDirection.bBack = false;
+	}
 }
 
 void APOCharacter::MoveRight(float value)
 {
 	Input_RL = value;
+
+	/** Dodge Direction */
+	if (value > 0.f)
+	{
+		DodgeDirection.bRight = true;
+		DodgeDirection.bLeft = false;
+	}
+	else if (value < 0.f)
+	{
+		DodgeDirection.bRight = false;
+		DodgeDirection.bLeft = true;
+	}
+	else
+	{
+		DodgeDirection.bRight = false;
+		DodgeDirection.bLeft = false;
+	}
 }
 
 void APOCharacter::LookUp(float value)
@@ -119,11 +166,80 @@ void APOCharacter::WalkRun()
 void APOCharacter::Dodge()
 {
 	if (MovementState == EMovementState::EMS_Jumping) return;
-	MovementState = EMovementState::EMS_Dodging;
+	if (MovementState == EMovementState::EMS_Dodging) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DodgeMontage)
+	{
+		AnimInstance->Montage_Play(DodgeMontage);
+		FName Way = GetDodgeWay();
+
+		if (Way.IsValid())
+		{
+			AnimInstance->Montage_JumpToSection(Way, DodgeMontage);
+		}
+		MovementState = EMovementState::EMS_Dodging;
+	}
+}
+
+FName APOCharacter::GetDodgeWay()
+{
+	if (CombatState != ECombatState::ECS_LockOn)
+	{
+		return FName("F");
+	}
+
+	FName Way;
+	if (DodgeDirection.bFront)
+	{
+		Way = FName("F");
+		if (DodgeDirection.bRight)
+		{
+			Way = FName("FR");
+		}
+		else if (DodgeDirection.bLeft)
+		{
+			Way = FName("FL");
+		}
+	}
+	else if (DodgeDirection.bBack)
+	{
+		Way = FName("B");
+		if (DodgeDirection.bRight)
+		{
+			Way = FName("BR");
+		}
+		else if (DodgeDirection.bLeft)
+		{
+			Way = FName("BL");
+		}
+	}
+	else
+	{
+		if (DodgeDirection.bRight)
+		{
+			Way = FName("R");
+		}
+		else if (DodgeDirection.bLeft)
+		{
+			Way = FName("L");
+		}
+		else
+		{
+			Way = FName("F");
+		}
+	}
+	return Way;
 }
 
 void APOCharacter::Jump()
 {
+	if (MovementState == EMovementState::EMS_Dodging)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		AnimInstance->Montage_Stop(0.f, DodgeMontage);
+	}
+
 	ACharacter::Jump();
 	MovementState = EMovementState::EMS_Jumping;
 }
@@ -260,6 +376,11 @@ void APOCharacter::ChangeLockOn()
 	{
 		LockedOnEnemy = Cast<APawn>(SphereHit.GetActor());
 	}
+}
+
+void APOCharacter::Attack()
+{
+
 }
 
 FVector APOCharacter::GetDesiredVelocity()

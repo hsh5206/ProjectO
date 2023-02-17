@@ -31,6 +31,8 @@ public:
 	EMovementState MovementState = EMovementState::EMS_Running;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	ECombatState CombatState = ECombatState::ECS_Unarmed;
+	FDodgeDirection DodgeDirection;
+	FName GetDodgeWay();
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetDesiredVelocity();
@@ -51,6 +53,7 @@ public:
 	void SprintEnd();
 	void LockOn();
 	void ChangeLockOn();
+	void Attack();
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float Input_FB;
@@ -68,9 +71,14 @@ public:
 	/** Montage */
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* EquipMontage;
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* AttackMontage;
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* DodgeMontage;
 
 	/** Notify Callback */
 	UFUNCTION(BlueprintCallable)
 	void AttachWeapon();
+
 
 };
