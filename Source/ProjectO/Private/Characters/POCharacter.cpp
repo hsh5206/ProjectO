@@ -21,7 +21,7 @@ APOCharacter::APOCharacter()
 	SpringArm->SetRelativeLocation(FVector(0.f, 0.f, 70.f));
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->bEnableCameraRotationLag = true;
-	SpringArm->CameraLagSpeed = 6.f;
+	SpringArm->CameraLagSpeed = 10.f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
@@ -77,31 +77,19 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("Jump"), EInputEvent::IE_Pressed, this, &APOCharacter::Jump);
 	PlayerInputComponent->BindAction(FName("Dodge"), EInputEvent::IE_Pressed, this, &APOCharacter::Dodge);
 	PlayerInputComponent->BindAction(FName("EquipUnequip"), EInputEvent::IE_Pressed, this, &APOCharacter::EquipUnequip);
+	PlayerInputComponent->BindAction(FName("Sprint"), EInputEvent::IE_Pressed, this, &APOCharacter::Sprint);
+	PlayerInputComponent->BindAction(FName("Sprint"), EInputEvent::IE_Released, this, &APOCharacter::SprintEnd);
 
 }
 
 void APOCharacter::MoveForward(float value)
 {
 	Input_FB = value;
-	if (MovementState == EMovementState::EMS_Jumping)
-	{
-		const FRotator ControlRotation = GetControlRotation();
-		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
-		FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Forward, value, true);
-	}
 }
 
 void APOCharacter::MoveRight(float value)
 {
 	Input_RL = value;
-	if (MovementState == EMovementState::EMS_Jumping)
-	{
-		const FRotator ControlRotation = GetControlRotation();
-		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
-		FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		AddMovementInput(Right, value);
-	}
 }
 
 void APOCharacter::LookUp(float value)
@@ -128,6 +116,7 @@ void APOCharacter::WalkRun()
 
 void APOCharacter::Dodge()
 {
+	if (MovementState == EMovementState::EMS_Jumping) return;
 	MovementState = EMovementState::EMS_Dodging;
 }
 
@@ -168,6 +157,16 @@ void APOCharacter::AttachWeapon()
 		Weapon->AttachMeshToSocket(GetMesh(), FName("BackWeaponSocket"));
 		CombatState = ECombatState::ECS_Unarmed;
 	}
+}
+
+void APOCharacter::Sprint()
+{
+	MovementState = EMovementState::EMS_Sprinting;
+}
+
+void APOCharacter::SprintEnd()
+{
+	MovementState = EMovementState::EMS_Running;
 }
 
 FVector APOCharacter::GetDesiredVelocity()

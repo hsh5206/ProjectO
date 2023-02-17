@@ -44,6 +44,8 @@ public:
 	void Dodge();
 	void Jump();
 	void EquipUnequip();
+	void Sprint();
+	void SprintEnd();
 
 	float Input_FB;
 	float Input_RL;
@@ -63,4 +65,5 @@ public:
 	/** Notify Callback */
 	UFUNCTION(BlueprintCallable)
 	void AttachWeapon();
+
 };
