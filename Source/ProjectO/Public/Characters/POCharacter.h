@@ -26,7 +26,7 @@ protected:
 	class UCameraComponent* Camera;
 
 public:	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EMovementState MovementState = EMovementState::EMS_Running;
 
 	UFUNCTION(BlueprintCallable)
@@ -38,6 +38,8 @@ public:
 	void LookUp(float value);
 	void Turn(float value);
 	void WalkRun();
+	void Dodge();
+	void Jump();
 
 	float Input_FB;
 	float Input_RL;

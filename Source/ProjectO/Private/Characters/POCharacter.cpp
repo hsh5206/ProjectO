@@ -7,8 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Math/UnrealMathUtility.h"
-
-
+#include "GameFramework/Character.h"
 
 APOCharacter::APOCharacter()
 {
@@ -55,16 +54,34 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &APOCharacter::Turn);
 
 	PlayerInputComponent->BindAction(FName("ToggleWalkRun"), EInputEvent::IE_Pressed, this, &APOCharacter::WalkRun);
+	PlayerInputComponent->BindAction(FName("Jump"), EInputEvent::IE_Pressed, this, &APOCharacter::Jump);
+	PlayerInputComponent->BindAction(FName("Dodge"), EInputEvent::IE_Pressed, this, &APOCharacter::Dodge);
+
 }
 
 void APOCharacter::MoveForward(float value)
 {
 	Input_FB = value;
+	if (MovementState == EMovementState::EMS_Jumping)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Jump_Move?"));
+		const FRotator ControlRotation = GetControlRotation();
+		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+		FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Forward, value, true);
+	}
 }
 
 void APOCharacter::MoveRight(float value)
 {
 	Input_RL = value;
+	if (MovementState == EMovementState::EMS_Jumping)
+	{
+		const FRotator ControlRotation = GetControlRotation();
+		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+		FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Right, value);
+	}
 }
 
 void APOCharacter::LookUp(float value)
@@ -87,6 +104,17 @@ void APOCharacter::WalkRun()
 {
 	if (MovementState == EMovementState::EMS_Walking) MovementState = EMovementState::EMS_Running;
 	else if (MovementState == EMovementState::EMS_Running) MovementState = EMovementState::EMS_Walking;
+}
+
+void APOCharacter::Dodge()
+{
+	MovementState = EMovementState::EMS_Dodging;
+}
+
+void APOCharacter::Jump()
+{
+	ACharacter::Jump();
+	MovementState = EMovementState::EMS_Jumping;
 }
 
 FVector APOCharacter::GetDesiredVelocity()

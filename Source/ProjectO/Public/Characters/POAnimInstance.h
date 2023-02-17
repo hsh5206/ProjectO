@@ -16,7 +16,7 @@ class PROJECTO_API UPOAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EMovementState MovementState = EMovementState::EMS_Running;
 	
 protected:
@@ -28,7 +28,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	class UCharacterMovementComponent* Movement;
 
+	UPROPERTY(BlueprintReadWrite, Category = Movement)
 	float Input_FB;
+	UPROPERTY(BlueprintReadWrite, Category = Movement)
 	float Input_RL;
 
 	UPROPERTY(BlueprintReadWrite, Category = Movement)
