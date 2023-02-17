@@ -44,4 +44,6 @@ public:
 	float Input_FB;
 	float Input_RL;
 	
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	bool bIsMoving;
 };

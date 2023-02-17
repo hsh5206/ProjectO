@@ -42,6 +42,18 @@ void APOCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (Input_FB == 0.f && Input_RL == 0.f)
+	{
+		bIsMoving = false;
+	}
+	else if (MovementState == EMovementState::EMS_Jumping || MovementState == EMovementState::EMS_Dodging)
+	{
+		bIsMoving = true;
+	}
+	else
+	{
+		bIsMoving = true;
+	}
 }
 
 void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -64,7 +76,6 @@ void APOCharacter::MoveForward(float value)
 	Input_FB = value;
 	if (MovementState == EMovementState::EMS_Jumping)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Jump_Move?"));
 		const FRotator ControlRotation = GetControlRotation();
 		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
 		FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);

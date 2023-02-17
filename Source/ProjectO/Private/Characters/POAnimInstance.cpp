@@ -30,16 +30,7 @@ void UPOAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		MovementState = Character->MovementState;
 
-		if (Movement)
-		{
-			if (Input_FB == 0.f && Input_RL == 0.f)
-			{
-				bIsMoving = false;
-			}
-			else {
-				bIsMoving = true;
-			}
-		}
+		bIsMoving = Character->bIsMoving;
 	}
 
 }
