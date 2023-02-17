@@ -8,3 +8,10 @@ enum class EMovementState : uint8
 	EMS_Jumping UMETA(DisplayName = "Jumping"),
 	EMS_Dodging UMETA(Displayname = "Dodging")
 };
+
+UENUM(BlueprintType)
+enum class ECombatState : uint8
+{
+	ECS_Unarmed UMETA(DisplayName = "Unarmed"),
+	ECS_Armed UMETA(DisplayName = "Armed"),
+};

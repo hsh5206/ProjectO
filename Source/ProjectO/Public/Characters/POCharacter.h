@@ -25,9 +25,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Camera)
 	class UCameraComponent* Camera;
 
-public:	
+public:
+	/** State */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EMovementState MovementState = EMovementState::EMS_Running;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	ECombatState CombatState = ECombatState::ECS_Unarmed;
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetDesiredVelocity();
@@ -40,10 +43,24 @@ public:
 	void WalkRun();
 	void Dodge();
 	void Jump();
+	void EquipUnequip();
 
 	float Input_FB;
 	float Input_RL;
 	
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	bool bIsMoving;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class AWeapon* Weapon;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<class AWeapon> WeaponToSpawn;
+
+	/** Montage */
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* EquipMontage;
+
+	/** Notify Callback */
+	UFUNCTION(BlueprintCallable)
+	void AttachWeapon();
 };

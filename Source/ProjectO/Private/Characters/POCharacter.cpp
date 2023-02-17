@@ -9,6 +9,8 @@
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/Character.h"
 
+#include "Items/Weapon.h"
+
 APOCharacter::APOCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -35,6 +37,12 @@ APOCharacter::APOCharacter()
 void APOCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (WeaponToSpawn)
+	{
+		Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(WeaponToSpawn));
+		Weapon->Equip(GetMesh(), FName("BackWeaponSocket"), this);
+	}
 	
 }
 
@@ -68,6 +76,7 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("ToggleWalkRun"), EInputEvent::IE_Pressed, this, &APOCharacter::WalkRun);
 	PlayerInputComponent->BindAction(FName("Jump"), EInputEvent::IE_Pressed, this, &APOCharacter::Jump);
 	PlayerInputComponent->BindAction(FName("Dodge"), EInputEvent::IE_Pressed, this, &APOCharacter::Dodge);
+	PlayerInputComponent->BindAction(FName("EquipUnequip"), EInputEvent::IE_Pressed, this, &APOCharacter::EquipUnequip);
 
 }
 
@@ -126,6 +135,39 @@ void APOCharacter::Jump()
 {
 	ACharacter::Jump();
 	MovementState = EMovementState::EMS_Jumping;
+}
+
+void APOCharacter::EquipUnequip()
+{
+	if (!Weapon) return;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && EquipMontage)
+	{
+		if (CombatState == ECombatState::ECS_Unarmed)
+		{
+			AnimInstance->Montage_Play(EquipMontage, 1.5f);
+			AnimInstance->Montage_JumpToSection(FName("Equip"), EquipMontage);
+		}
+		else
+		{
+			AnimInstance->Montage_Play(EquipMontage, 1.5f);
+			AnimInstance->Montage_JumpToSection(FName("Unequip"), EquipMontage);
+		}
+	}
+}
+
+void APOCharacter::AttachWeapon()
+{
+	if (CombatState == ECombatState::ECS_Unarmed)
+	{
+		Weapon->AttachMeshToSocket(GetMesh(), FName("HandWeaponSocket"));
+		CombatState = ECombatState::ECS_Armed;
+	}
+	else
+	{
+		Weapon->AttachMeshToSocket(GetMesh(), FName("BackWeaponSocket"));
+		CombatState = ECombatState::ECS_Unarmed;
+	}
 }
 
 FVector APOCharacter::GetDesiredVelocity()

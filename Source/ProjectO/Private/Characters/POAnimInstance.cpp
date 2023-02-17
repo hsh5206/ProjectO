@@ -29,6 +29,7 @@ void UPOAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Input_RL = Character->Input_RL;
 
 		MovementState = Character->MovementState;
+		CombatState = Character->CombatState;
 
 		bIsMoving = Character->bIsMoving;
 	}

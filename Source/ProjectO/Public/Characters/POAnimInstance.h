@@ -18,6 +18,8 @@ class PROJECTO_API UPOAnimInstance : public UAnimInstance
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	EMovementState MovementState = EMovementState::EMS_Running;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	ECombatState CombatState = ECombatState::ECS_Unarmed;
 	
 protected:
 	virtual void NativeInitializeAnimation() override;
