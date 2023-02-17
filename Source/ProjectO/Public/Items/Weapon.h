@@ -24,4 +24,18 @@ protected:
 public:	
 	void Equip(USceneComponent* InParent, const FName& InSocketName, APawn* NewInstigator);
 	void AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName);
+
+	UFUNCTION(BlueprintCallable)
+	void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+private:
+	UPROPERTY(VisibleAnywhere)
+	class UBoxComponent* WeaponBox;
+	UPROPERTY(VisibleAnywhere)
+	USceneComponent* TraceStart;
+	UPROPERTY(VisibleAnywhere)
+	USceneComponent* TraceEnd;
+
+	TArray<AActor*> IgnoreActors;
+
 };
