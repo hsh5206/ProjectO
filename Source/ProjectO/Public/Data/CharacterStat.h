@@ -21,11 +21,11 @@ public:
 	int32 Durability = 5; // ³»±¸
 
 	UPROPERTY(VisibleAnywhere)
-	int32 MaxHealth = 100 + Vigor * 5;
+	float MaxHealth = 100 + Vigor * 5;
 	UPROPERTY(VisibleAnywhere)
-	int32 Health = MaxHealth;
+	float Health = MaxHealth;
 	UPROPERTY(VisibleAnywhere)
-	int32 MaxStamina = 100 + Endurance * 5;
+	float MaxStamina = 100 + Endurance * 5;
 	UPROPERTY(VisibleAnywhere)
-	int32 Stamina = MaxStamina;
+	float Stamina = MaxStamina;
 };

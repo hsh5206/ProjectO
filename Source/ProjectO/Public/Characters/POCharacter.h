@@ -21,6 +21,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	class APOPlayerController* Controller;
 	UPROPERTY(EditAnywhere, Category = Camera)
 	class USpringArmComponent* SpringArm;
 	UPROPERTY(EditAnywhere, Category = Camera)
@@ -101,4 +102,7 @@ public:
 	void AttackEndComboState();
 
 	int32 CalculateDamage();
+
+private:
+	bool bCanSprint = true;
 };

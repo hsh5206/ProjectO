@@ -14,6 +14,7 @@
 #include "Items/Weapon.h"
 #include "Characters/Enemy.h"
 #include "HUD/LockedOnWidgetComponent.h"
+#include "Characters/POPlayerController.h"
 
 APOCharacter::APOCharacter()
 {
@@ -48,6 +49,7 @@ void APOCharacter::BeginPlay()
 		Weapon->Equip(GetMesh(), FName("BackWeaponSocket"), this);
 	}
 	
+	Controller = Cast<APOPlayerController>(GetController());
 }
 
 void APOCharacter::Tick(float DeltaTime)
@@ -77,6 +79,27 @@ void APOCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	float DeltaStamina = 10.f * DeltaTime;
+
+
+	if (bCanSprint && Controller && MovementState == EMovementState::EMS_Sprinting)
+	{
+		if (CharacterInfo.CharacterStat.Stamina < DeltaStamina)
+		{
+			MovementState = EMovementState::EMS_Running;
+			bCanSprint = false;
+			return;
+		}
+
+		CharacterInfo.CharacterStat.Stamina -= DeltaStamina;
+		Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
+	}
+
+	else if (Controller && CharacterInfo.CharacterStat.Stamina != CharacterInfo.CharacterStat.MaxStamina)
+	{
+		CharacterInfo.CharacterStat.Stamina += DeltaStamina;
+		Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
+	}
 }
 
 void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -184,11 +207,16 @@ void APOCharacter::WalkRun()
 
 void APOCharacter::Dodge()
 {
+	if (CharacterInfo.CharacterStat.Stamina < 30) return;
+
 	if (MovementState == EMovementState::EMS_Jumping) return;
 	if (MovementState == EMovementState::EMS_Dodging) return;
 	if (MovementState == EMovementState::EMS_Attacking) return;
 
 	MovementState = EMovementState::EMS_Dodging;
+	CharacterInfo.CharacterStat.Stamina -= 30.f;
+	Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
+
 	if (CombatState == ECombatState::ECS_Unarmed) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -317,7 +345,13 @@ void APOCharacter::AttachWeapon()
 void APOCharacter::Sprint()
 {
 	if (CombatState == ECombatState::ECS_LockOn) return;
-	MovementState = EMovementState::EMS_Sprinting;
+
+	if (CharacterInfo.CharacterStat.Stamina > 20.f) bCanSprint = true;
+
+	if (bCanSprint)
+	{
+		MovementState = EMovementState::EMS_Sprinting;
+	}
 }
 
 void APOCharacter::SprintEnd()
