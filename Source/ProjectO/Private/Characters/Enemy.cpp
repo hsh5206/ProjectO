@@ -4,10 +4,14 @@
 #include "Characters/Enemy.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "HUD/EnemyHealthBarWidgetComponent.h"
+
 AEnemy::AEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	HealthBarWidget = CreateDefaultSubobject<UEnemyHealthBarWidgetComponent>(TEXT("HealthBar"));
+	HealthBarWidget->SetupAttachment(GetRootComponent());
 }
 
 void AEnemy::BeginPlay()
@@ -42,15 +46,16 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	/*Health = FMath::Clamp(Health - DamageAmount, 0.f, MaxHealth);
+	CharacterInfo.CharacterStat.Health = FMath::Clamp(CharacterInfo.CharacterStat.Health - DamageAmount, 0.f, CharacterInfo.CharacterStat.MaxHealth);
 	if (HealthBarWidget)
 	{
-		HealthBarWidget->SetHealthPercent(GetHealthPercentage());
+		float Percent = float(CharacterInfo.CharacterStat.Health) / float(CharacterInfo.CharacterStat.MaxHealth);
+		HealthBarWidget->SetHealthPercent(Percent);
 	}
-	if (Health == 0.f)
+	if (CharacterInfo.CharacterStat.Health == 0.f)
 	{
-		SetEnemyState(EEnemyState::EES_Dead);
-		Dead();
-	}*/
+		// SetEnemyState(EEnemyState::EES_Dead);
+		// Dead();
+	}
 	return DamageAmount;
 }

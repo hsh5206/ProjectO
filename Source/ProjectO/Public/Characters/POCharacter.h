@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "CharacterState.h"
+#include "Data/CharacterInfo.h"
 #include "POCharacter.generated.h"
 
 UCLASS()
@@ -39,6 +40,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	APawn* LockedOnEnemy;
+
+	/** Character Info */
+	UPROPERTY(EditAnywhere)
+	FCharacterInfo CharacterInfo;
 
 	/** Callbacks by Input */
 	void MoveForward(float value);
@@ -94,13 +99,6 @@ public:
 	void AttackStartComboState();
 	UFUNCTION(BlueprintCallable)
 	void AttackEndComboState();
-
-	/** Stat */
-	int32 Vigor = 5; // »ý¸í·Â
-	int32 Endurance = 5; // Áö±¸·Â
-	int32 Power = 5; // Èû
-	int32 Agility = 5; // ¹ÎÃ¸
-	int32 Durability = 5; // ³»±¸
 
 	int32 CalculateDamage();
 };

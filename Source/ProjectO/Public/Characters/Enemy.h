@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/HitInterface.h"
+#include "Data/CharacterInfo.h"
 #include "Enemy.generated.h"
 
 UCLASS()
@@ -31,4 +32,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* HitReactMontage;
 
+	/** Character Info */
+	UPROPERTY(EditAnywhere)
+	FCharacterInfo CharacterInfo;
+
+	UPROPERTY(VisibleAnywhere)
+	class UEnemyHealthBarWidgetComponent* HealthBarWidget;
 };

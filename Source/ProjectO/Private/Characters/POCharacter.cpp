@@ -100,6 +100,14 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void APOCharacter::MoveForward(float value)
 {
+	if (MovementState == EMovementState::EMS_Attacking)
+	{
+		Input_FB = 0.f;
+		return;
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->Montage_Stop(1.f, AttackMontage);
 	Input_FB = value;
 
 	/** Dodge Direction */
@@ -122,6 +130,14 @@ void APOCharacter::MoveForward(float value)
 
 void APOCharacter::MoveRight(float value)
 {
+	if (MovementState == EMovementState::EMS_Attacking)
+	{
+		Input_RL= 0.f;
+		return;
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->Montage_Stop(1.f, AttackMontage);
 	Input_RL = value;
 
 	/** Dodge Direction */
@@ -168,6 +184,7 @@ void APOCharacter::Dodge()
 {
 	if (MovementState == EMovementState::EMS_Jumping) return;
 	if (MovementState == EMovementState::EMS_Dodging) return;
+	if (MovementState == EMovementState::EMS_Attacking) return;
 
 	MovementState = EMovementState::EMS_Dodging;
 	if (CombatState == ECombatState::ECS_Unarmed) return;
@@ -429,8 +446,7 @@ void APOCharacter::AttackEndComboState()
 
 int32 APOCharacter::CalculateDamage()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%d"), int32((Weapon->Damage + Power) * ((100 + Agility) / 100)));
-	return int32((Weapon->Damage + Power) * ((100 + Agility) / 100));
+	return int32((Weapon->Damage + CharacterInfo.CharacterStat.Power) * ((100 + CharacterInfo.CharacterStat.Agility) / 100));
 }
 
 FVector APOCharacter::GetDesiredVelocity()
