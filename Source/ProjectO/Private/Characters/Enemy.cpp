@@ -5,13 +5,18 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "HUD/EnemyHealthBarWidgetComponent.h"
+#include "HUD/LockedOnWidgetComponent.h"
 
 AEnemy::AEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	
 	HealthBarWidget = CreateDefaultSubobject<UEnemyHealthBarWidgetComponent>(TEXT("HealthBar"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
+	LockedOnImage = CreateDefaultSubobject<ULockedOnWidgetComponent>(TEXT("LockedOnImage"));
+	LockedOnImage->SetupAttachment(GetRootComponent());
+	LockedOnImage->SetVisibility(false);
 }
 
 void AEnemy::BeginPlay()

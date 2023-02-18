@@ -12,6 +12,8 @@
 #include "Components/BoxComponent.h"
 
 #include "Items/Weapon.h"
+#include "Characters/Enemy.h"
+#include "HUD/LockedOnWidgetComponent.h"
 
 APOCharacter::APOCharacter()
 {
@@ -329,6 +331,7 @@ void APOCharacter::LockOn()
 	if (CombatState == ECombatState::ECS_LockOn)
 	{
 		CombatState = ECombatState::ECS_Armed;
+		LockedOnEnemy->LockedOnImage->SetVisibility(false);
 		LockedOnEnemy = nullptr;
 		return;
 	}
@@ -368,7 +371,8 @@ void APOCharacter::LockOn()
 				AnimInstance->Montage_JumpToSection(FName("Equip"), EquipMontage);
 			}
 		}
-		LockedOnEnemy = Cast<APawn>(SphereHit.GetActor());
+		LockedOnEnemy = Cast<AEnemy>(SphereHit.GetActor());
+		LockedOnEnemy->LockedOnImage->SetVisibility(true);
 		CombatState = ECombatState::ECS_LockOn;
 	}
 }
@@ -404,7 +408,9 @@ void APOCharacter::ChangeLockOn()
 
 	if (SphereHit.GetActor())
 	{
-		LockedOnEnemy = Cast<APawn>(SphereHit.GetActor());
+		LockedOnEnemy->LockedOnImage->SetVisibility(false);
+		LockedOnEnemy = Cast<AEnemy>(SphereHit.GetActor());
+		LockedOnEnemy->LockedOnImage->SetVisibility(true);
 	}
 }
 

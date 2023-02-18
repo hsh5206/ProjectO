@@ -39,7 +39,7 @@ public:
 	FVector GetDesiredVelocity();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	APawn* LockedOnEnemy;
+	class AEnemy* LockedOnEnemy;
 
 	/** Character Info */
 	UPROPERTY(EditAnywhere)

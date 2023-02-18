@@ -38,4 +38,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	class UEnemyHealthBarWidgetComponent* HealthBarWidget;
+	UPROPERTY(VisibleAnywhere)
+	class ULockedOnWidgetComponent* LockedOnImage;
 };
