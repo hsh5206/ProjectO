@@ -10,6 +10,7 @@
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Items/Weapon.h"
 #include "Characters/Enemy.h"
@@ -229,6 +230,11 @@ void APOCharacter::Dodge()
 		{
 			AnimInstance->Montage_JumpToSection(Way, DodgeMontage);
 		}
+	}
+
+	if (DashSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DashSound, GetActorLocation());
 	}
 }
 

@@ -103,6 +103,12 @@ public:
 
 	int32 CalculateDamage();
 
+	/** Sound */
+	UPROPERTY(EditAnywhere)
+	class USoundBase* HitSound;
+	UPROPERTY(EditAnywhere)
+	class USoundBase* DashSound;
+
 private:
 	bool bCanSprint = true;
 };
