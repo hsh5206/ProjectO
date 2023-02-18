@@ -6,6 +6,9 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "Characters/POCharacter.h"
+#include "Interfaces/HitInterface.h"
+
 AWeapon::AWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -38,6 +41,7 @@ void AWeapon::Tick(float DeltaTime)
 void AWeapon::Equip(USceneComponent* InParent, const FName& InSocketName, APawn* NewInstigator)
 {
 	SetInstigator(NewInstigator);
+	SetOwner(NewInstigator);
 	AttachMeshToSocket(InParent, InSocketName);
 }
 
@@ -78,4 +82,23 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		BoxHit,
 		true
 	);
+
+	int32 TotalDamage = Cast<APOCharacter>(GetOwner())->CalculateDamage();
+
+	if (BoxHit.GetActor())
+	{
+		UGameplayStatics::ApplyDamage(BoxHit.GetActor(),
+			TotalDamage,
+			GetInstigator()->GetController(),
+			this,
+			UDamageType::StaticClass()
+		);
+
+		IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
+		if (HitInterface)
+		{
+			HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
+		}
+		IgnoreActors.AddUnique(BoxHit.GetActor());
+	}
 }

@@ -67,6 +67,8 @@ public:
 	class AWeapon* Weapon;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<class AWeapon> WeaponToSpawn;
+	UFUNCTION(BlueprintCallable)
+	void EnableWeaponCollision(ECollisionEnabled::Type CollisionEnabled);
 
 	/** Montage */
 	UPROPERTY(EditAnywhere)
@@ -80,5 +82,25 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttachWeapon();
 
+	/** Combo Attack */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = "true"))
+	bool CanNextCombo = false;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = "true"))
+	int32 MaxCombo = 3;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = "true"))
+	int32 CurrentCombo = 0;
 
+	UFUNCTION(BlueprintCallable)
+	void AttackStartComboState();
+	UFUNCTION(BlueprintCallable)
+	void AttackEndComboState();
+
+	/** Stat */
+	int32 Vigor = 5; // »ý¸í·Â
+	int32 Endurance = 5; // Áö±¸·Â
+	int32 Power = 5; // Èû
+	int32 Agility = 5; // ¹ÎÃ¸
+	int32 Durability = 5; // ³»±¸
+
+	int32 CalculateDamage();
 };

@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class UBoxComponent;
+
 UCLASS()
 class PROJECTO_API AWeapon : public AActor
 {
@@ -28,14 +30,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UPROPERTY(VisibleAnywhere)
+	int32 Damage = 10;
+
+	TArray<AActor*> IgnoreActors;
+
+	FORCEINLINE UBoxComponent* GetWeaponBox() const { return WeaponBox; }
+
 private:
 	UPROPERTY(VisibleAnywhere)
-	class UBoxComponent* WeaponBox;
+	UBoxComponent* WeaponBox;
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* TraceStart;
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* TraceEnd;
-
-	TArray<AActor*> IgnoreActors;
-
 };

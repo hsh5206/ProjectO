@@ -9,6 +9,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Components/BoxComponent.h"
 
 #include "Items/Weapon.h"
 
@@ -236,6 +237,7 @@ FName APOCharacter::GetDodgeWay()
 
 void APOCharacter::Jump()
 {
+	if (MovementState == EMovementState::EMS_Attacking) return;
 	if (MovementState == EMovementState::EMS_Dodging)
 	{
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -269,6 +271,15 @@ void APOCharacter::EquipUnequip()
 				LockedOnEnemy = nullptr;
 			}
 		}
+	}
+}
+
+void APOCharacter::EnableWeaponCollision(ECollisionEnabled::Type CollisionEnabled)
+{
+	if (Weapon)
+	{
+		Weapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
+		Weapon->IgnoreActors.Empty();
 	}
 }
 
@@ -382,7 +393,44 @@ void APOCharacter::ChangeLockOn()
 
 void APOCharacter::Attack()
 {
+	if (MovementState == EMovementState::EMS_Dodging) return;
+	if (MovementState == EMovementState::EMS_Attacking && !CanNextCombo) return;
+	if (MovementState == EMovementState::EMS_Jumping) return;
 
+	if (FMath::IsWithinInclusive<int32>(CurrentCombo, 0, MaxCombo - 1))
+	{
+		CurrentCombo = FMath::Clamp<int32>(CurrentCombo + 1, 1, MaxCombo);
+	}
+	CanNextCombo = false;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	FName SectionName = *FString::Printf(TEXT("Attack%d"), CurrentCombo);
+	
+	if (AnimInstance && AttackMontage)
+	{
+		AnimInstance->Montage_Play(AttackMontage);
+		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
+		MovementState = EMovementState::EMS_Attacking;
+	}
+}
+
+void APOCharacter::AttackStartComboState()
+{
+	CanNextCombo = true;
+}
+
+void APOCharacter::AttackEndComboState()
+{
+	MovementState = EMovementState::EMS_Running;
+	CanNextCombo = false;
+	CurrentCombo = 0;
+}
+
+int32 APOCharacter::CalculateDamage()
+{
+	UE_LOG(LogTemp, Warning, TEXT("%d"), int32((Weapon->Damage + Power) * ((100 + Agility) / 100)));
+	return int32((Weapon->Damage + Power) * ((100 + Agility) / 100));
 }
 
 FVector APOCharacter::GetDesiredVelocity()

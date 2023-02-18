@@ -2,6 +2,7 @@
 
 
 #include "Characters/Enemy.h"
+#include "Kismet/GameplayStatics.h"
 
 AEnemy::AEnemy()
 {
@@ -27,3 +28,29 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
+void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
+{
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, ImpactPoint);
+	}
+	if (HitParticle)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, ImpactPoint);
+	}
+}
+
+float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	/*Health = FMath::Clamp(Health - DamageAmount, 0.f, MaxHealth);
+	if (HealthBarWidget)
+	{
+		HealthBarWidget->SetHealthPercent(GetHealthPercentage());
+	}
+	if (Health == 0.f)
+	{
+		SetEnemyState(EEnemyState::EES_Dead);
+		Dead();
+	}*/
+	return DamageAmount;
+}
