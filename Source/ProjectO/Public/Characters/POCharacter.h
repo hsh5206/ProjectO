@@ -109,6 +109,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	class USoundBase* DashSound;
 
+	/** Particles */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class UNiagaraComponent* DodgeEffect;
+
 private:
 	bool bCanSprint = true;
 };

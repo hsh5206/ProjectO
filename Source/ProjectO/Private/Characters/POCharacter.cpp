@@ -11,6 +11,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraComponent.h"
 
 #include "Items/Weapon.h"
 #include "Characters/Enemy.h"
@@ -38,6 +39,9 @@ APOCharacter::APOCharacter()
 	SpringArm->bUsePawnControlRotation = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 0.f, 0.f);
+
+	DodgeEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DodgeEffect"));
+	DodgeEffect->SetupAttachment(GetRootComponent());
 }
 
 void APOCharacter::BeginPlay()
@@ -51,6 +55,7 @@ void APOCharacter::BeginPlay()
 	}
 	
 	Controller = Cast<APOPlayerController>(GetController());
+	DodgeEffect->Deactivate();
 }
 
 void APOCharacter::Tick(float DeltaTime)
@@ -245,6 +250,8 @@ void APOCharacter::Dodge()
 	MovementState = EMovementState::EMS_Dodging;
 	CharacterInfo.CharacterStat.Stamina -= 30.f;
 	Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
+
+	DodgeEffect->Activate();
 
 	if (CombatState == ECombatState::ECS_Unarmed) return;
 
