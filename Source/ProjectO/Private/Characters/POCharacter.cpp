@@ -133,7 +133,19 @@ void APOCharacter::MoveForward(float value)
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	AnimInstance->Montage_Stop(1.f, AttackMontage);
+	if (AnimInstance->Montage_IsPlaying(AttackMontage))
+	{
+		AnimInstance->Montage_Stop(1.f, AttackMontage);
+	}
+	
+	if (MovementState == EMovementState::EMS_Jumping)
+	{
+		const FRotator ControlRotation = GetControlRotation();
+		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+		FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Forward, value);
+	}
+
 	Input_FB = value;
 
 	/** Dodge Direction */
@@ -163,8 +175,20 @@ void APOCharacter::MoveRight(float value)
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	AnimInstance->Montage_Stop(1.f, AttackMontage);
+	if (AnimInstance->Montage_IsPlaying(AttackMontage))
+	{
+		AnimInstance->Montage_Stop(1.f, AttackMontage);
+	}
+
 	Input_RL = value;
+
+	if (MovementState == EMovementState::EMS_Jumping)
+	{
+		const FRotator ControlRotation = GetControlRotation();
+		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+		FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Right, value);
+	}
 
 	/** Dodge Direction */
 	if (value > 0.f)
@@ -214,13 +238,16 @@ void APOCharacter::Dodge()
 	if (MovementState == EMovementState::EMS_Dodging) return;
 	if (MovementState == EMovementState::EMS_Attacking) return;
 
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance->Montage_IsPlaying(EquipMontage)) return;
+
 	MovementState = EMovementState::EMS_Dodging;
 	CharacterInfo.CharacterStat.Stamina -= 30.f;
 	Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
 
 	if (CombatState == ECombatState::ECS_Unarmed) return;
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && DodgeMontage)
 	{
 		AnimInstance->Montage_Play(DodgeMontage);
@@ -303,6 +330,8 @@ void APOCharacter::Jump()
 
 void APOCharacter::EquipUnequip()
 {
+	if (MovementState == EMovementState::EMS_Attacking) return;
+
 	if (!Weapon) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && EquipMontage)
@@ -460,13 +489,25 @@ void APOCharacter::Attack()
 	if (MovementState == EMovementState::EMS_Attacking && !CanNextCombo) return;
 	if (MovementState == EMovementState::EMS_Jumping) return;
 
+	if (CombatState == ECombatState::ECS_Unarmed)
+	{
+		EquipUnequip();
+		return;
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance->Montage_IsPlaying(EquipMontage))
+	{
+		return;
+	}
+
 	if (FMath::IsWithinInclusive<int32>(CurrentCombo, 0, MaxCombo - 1))
 	{
 		CurrentCombo = FMath::Clamp<int32>(CurrentCombo + 1, 1, MaxCombo);
 	}
 	CanNextCombo = false;
 
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
 	FName SectionName = *FString::Printf(TEXT("Attack%d"), CurrentCombo);
 	
@@ -497,11 +538,15 @@ int32 APOCharacter::CalculateDamage()
 
 FVector APOCharacter::GetDesiredVelocity()
 {
-	FRotator ControlRotation = GetControlRotation();
+	FRotator ControlRotationZ = FRotator(0.f, GetControlRotation().Yaw, 0.f);
+
+	FVector ControlForward = UKismetMathLibrary::GetForwardVector(ControlRotationZ);
+	FVector ControlRight = UKismetMathLibrary::GetRightVector(ControlRotationZ);
+	
 	FVector Velocity = \
 		UKismetMathLibrary::Add_VectorVector(\
-		UKismetMathLibrary::Multiply_VectorFloat(FVector(UKismetMathLibrary::GetForwardVector(ControlRotation)), Input_FB), \
-		UKismetMathLibrary::Multiply_VectorFloat(FVector(UKismetMathLibrary::GetRightVector(ControlRotation)), Input_RL) \
+		UKismetMathLibrary::Multiply_VectorFloat(ControlForward, Input_FB), \
+		UKismetMathLibrary::Multiply_VectorFloat(ControlRight, Input_RL) \
 		);
 	Velocity.Normalize();
 	return Velocity;

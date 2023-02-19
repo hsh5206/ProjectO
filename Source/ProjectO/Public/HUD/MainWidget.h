@@ -19,4 +19,6 @@ public:
 	class UProgressBar* HealthBar;
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* StaminaBar;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* HealthString;
 };

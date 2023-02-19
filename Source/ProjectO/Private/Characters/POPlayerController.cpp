@@ -3,8 +3,10 @@
 
 #include "Characters/POPlayerController.h"
 #include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
 
 #include "HUD/MainWidget.h"
+#include "Characters/POCharacter.h"
 
 APOPlayerController::APOPlayerController()
 {
@@ -34,6 +36,15 @@ void APOPlayerController::SetHealthPercent(float Max, float Cur)
 	if (MainWidget)
 	{
 		MainWidget->HealthBar->SetPercent(Cur / Max);
+		SetHealthString(Max, Cur);
+	}
+}
+
+void APOPlayerController::SetHealthString(float Max, float Cur)
+{
+	if (MainWidget)
+	{
+		MainWidget->HealthString->SetText(FText::FromString(FString::Printf(TEXT("%d / %d"), int(Cur), int(Max))));
 	}
 }
 
@@ -42,9 +53,14 @@ void APOPlayerController::BeginPlay()
 	Super::BeginPlay();
 	if (MainWidgetClass)
 	{
-
 		MainWidget = CreateWidget<UMainWidget>(this, MainWidgetClass);
 		MainWidget->AddToViewport();
+		APOCharacter* POCharacter = Cast<APOCharacter>(GetPawn());
+		if (POCharacter)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("hhh"));
+			SetHealthString(POCharacter->CharacterInfo.CharacterStat.MaxHealth, POCharacter->CharacterInfo.CharacterStat.Health);
+		}
 	}
 }
 
