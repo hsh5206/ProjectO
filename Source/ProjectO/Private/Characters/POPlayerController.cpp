@@ -58,7 +58,6 @@ void APOPlayerController::BeginPlay()
 		APOCharacter* POCharacter = Cast<APOCharacter>(GetPawn());
 		if (POCharacter)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("hhh"));
 			SetHealthString(POCharacter->CharacterInfo.CharacterStat.MaxHealth, POCharacter->CharacterInfo.CharacterStat.Health);
 		}
 	}
