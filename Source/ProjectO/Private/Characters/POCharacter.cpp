@@ -126,7 +126,6 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("LockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::LockOn);
 	PlayerInputComponent->BindAction(FName("ChangeLockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::ChangeLockOn);
 	PlayerInputComponent->BindAction(FName("Attack"), EInputEvent::IE_Pressed, this, &APOCharacter::Attack);
-
 }
 
 void APOCharacter::MoveForward(float value)
@@ -138,11 +137,11 @@ void APOCharacter::MoveForward(float value)
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance->Montage_IsPlaying(AttackMontage))
+	if (AttackMontage && AnimInstance->Montage_IsPlaying(AttackMontage))
 	{
 		AnimInstance->Montage_Stop(1.f, AttackMontage);
 	}
-	
+
 	if (MovementState == EMovementState::EMS_Jumping)
 	{
 		const FRotator ControlRotation = GetControlRotation();
@@ -175,12 +174,12 @@ void APOCharacter::MoveRight(float value)
 {
 	if (MovementState == EMovementState::EMS_Attacking)
 	{
-		Input_RL= 0.f;
+		Input_RL = 0.f;
 		return;
 	}
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance->Montage_IsPlaying(AttackMontage))
+	if (AttackMontage && AnimInstance->Montage_IsPlaying(AttackMontage))
 	{
 		AnimInstance->Montage_Stop(1.f, AttackMontage);
 	}
@@ -245,7 +244,7 @@ void APOCharacter::Dodge()
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-	if (AnimInstance->Montage_IsPlaying(EquipMontage)) return;
+	if (EquipMontage && AnimInstance->Montage_IsPlaying(EquipMontage)) return;
 
 	MovementState = EMovementState::EMS_Dodging;
 	CharacterInfo.CharacterStat.Stamina -= 30.f;
@@ -504,7 +503,7 @@ void APOCharacter::Attack()
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-	if (AnimInstance->Montage_IsPlaying(EquipMontage))
+	if (EquipMontage && AnimInstance->Montage_IsPlaying(EquipMontage))
 	{
 		return;
 	}
@@ -543,17 +542,17 @@ int32 APOCharacter::CalculateDamage()
 	return int32((Weapon->Damage + CharacterInfo.CharacterStat.Power) * ((100 + CharacterInfo.CharacterStat.Agility) / 100));
 }
 
-FVector APOCharacter::GetDesiredVelocity()
+FVector APOCharacter::GetDesiredVelocity(FVector None)
 {
 	FRotator ControlRotationZ = FRotator(0.f, GetControlRotation().Yaw, 0.f);
 
 	FVector ControlForward = UKismetMathLibrary::GetForwardVector(ControlRotationZ);
 	FVector ControlRight = UKismetMathLibrary::GetRightVector(ControlRotationZ);
-	
+
 	FVector Velocity = \
 		UKismetMathLibrary::Add_VectorVector(\
-		UKismetMathLibrary::Multiply_VectorFloat(ControlForward, Input_FB), \
-		UKismetMathLibrary::Multiply_VectorFloat(ControlRight, Input_RL) \
+			UKismetMathLibrary::Multiply_VectorFloat(ControlForward, Input_FB), \
+			UKismetMathLibrary::Multiply_VectorFloat(ControlRight, Input_RL) \
 		);
 	Velocity.Normalize();
 	return Velocity;

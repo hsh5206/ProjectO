@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Interfaces/HitInterface.h"
-#include "Data/CharacterInfo.h"
+#include "Characters/BaseCharacter.h"
 #include "Enemy.generated.h"
 
 UCLASS()
-class PROJECTO_API AEnemy : public ACharacter, public IHitInterface
+class PROJECTO_API AEnemy : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -18,24 +17,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
 
 protected:
 	virtual void BeginPlay() override;
 
 public:	
-	UPROPERTY(EditAnywhere)
-	class USoundBase* HitSound;
-	UPROPERTY(EditAnywhere)
-	class UParticleSystem* HitParticle;
-	UPROPERTY(EditAnywhere)
-	class UAnimMontage* HitReactMontage;
-
-	/** Character Info */
-	UPROPERTY(EditAnywhere)
-	FCharacterInfo CharacterInfo;
-
 	UPROPERTY(VisibleAnywhere)
 	class UEnemyHealthBarWidgetComponent* HealthBarWidget;
 	UPROPERTY(VisibleAnywhere)

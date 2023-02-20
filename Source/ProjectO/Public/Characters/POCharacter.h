@@ -3,13 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "CharacterState.h"
-#include "Data/CharacterInfo.h"
+#include "Characters/BaseCharacter.h"
 #include "POCharacter.generated.h"
 
 UCLASS()
-class PROJECTO_API APOCharacter : public ACharacter
+class PROJECTO_API APOCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -28,23 +26,11 @@ protected:
 	class UCameraComponent* Camera;
 
 public:
-	/** State */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	EMovementState MovementState = EMovementState::EMS_Running;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	ECombatState CombatState = ECombatState::ECS_Unarmed;
 	FDodgeDirection DodgeDirection;
 	FName GetDodgeWay();
 
-	UFUNCTION(BlueprintCallable)
-	FVector GetDesiredVelocity();
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	class AEnemy* LockedOnEnemy;
-
-	/** Character Info */
-	UPROPERTY(EditAnywhere)
-	FCharacterInfo CharacterInfo;
 
 	/** Callbacks by Input */
 	void MoveForward(float value);
@@ -61,14 +47,6 @@ public:
 	void ChangeLockOn();
 	void Attack();
 
-	UPROPERTY(BlueprintReadOnly, Category = Movement)
-	float Input_FB;
-	UPROPERTY(BlueprintReadOnly, Category = Movement)
-	float Input_RL;
-	
-	UPROPERTY(BlueprintReadOnly, Category = Movement)
-	bool bIsMoving;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class AWeapon* Weapon;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -80,13 +58,16 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* EquipMontage;
 	UPROPERTY(EditAnywhere)
-	class UAnimMontage* AttackMontage;
-	UPROPERTY(EditAnywhere)
 	class UAnimMontage* DodgeMontage;
 
 	/** Notify Callback */
 	UFUNCTION(BlueprintCallable)
 	void AttachWeapon();
+
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	float Input_FB;
+	UPROPERTY(BlueprintReadOnly, Category = Movement)
+	float Input_RL;
 
 	/** Combo Attack */
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = "true"))
@@ -101,17 +82,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttackEndComboState();
 
-	int32 CalculateDamage();
-
-	/** Sound */
-	UPROPERTY(EditAnywhere)
-	class USoundBase* HitSound;
+	/** Dodge */
 	UPROPERTY(EditAnywhere)
 	class USoundBase* DashSound;
-
-	/** Particles */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UNiagaraComponent* DodgeEffect;
+
+	int32 CalculateDamage();
+
+	virtual FVector GetDesiredVelocity(FVector None) override;
 
 private:
 	bool bCanSprint = true;
