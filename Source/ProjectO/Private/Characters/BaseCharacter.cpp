@@ -34,6 +34,7 @@ void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitParticle, ImpactPoint);
 	}
 
+	if (MovementState == EMovementState::EMS_Attacking) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && HitReactMontage)
 	{
