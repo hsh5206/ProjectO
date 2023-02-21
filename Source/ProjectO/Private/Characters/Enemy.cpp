@@ -15,15 +15,19 @@ AEnemy::AEnemy()
 	
 	HealthBarWidget = CreateDefaultSubobject<UEnemyHealthBarWidgetComponent>(TEXT("HealthBar"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
+
 	LockedOnImage = CreateDefaultSubobject<ULockedOnWidgetComponent>(TEXT("LockedOnImage"));
 	LockedOnImage->SetupAttachment(GetRootComponent());
-	LockedOnImage->SetVisibility(false);
+
+	Tags.Add(FName("Enemy"));
 }
 
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	HealthBarWidget->SetVisibility(false);
+	LockedOnImage->SetVisibility(false);
 }
 
 void AEnemy::AttackBasic_Implementation()
@@ -99,6 +103,8 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 {
 	Super::GetHit_Implementation(ImpactPoint);
 
+	HealthBarWidget->SetVisibility(true);
+
 	FVector goVector = UKismetMathLibrary::GetDirectionUnitVector(ImpactPoint, GetActorLocation());
 	LaunchCharacter(FVector(goVector.X, goVector.Y, 0.f) * 1000, false, false);
 
@@ -106,6 +112,7 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
 	if (AnimInstance && AttackMontage && AnimInstance->Montage_IsPlaying(AttackMontage)) return;
+	if (AnimInstance && AttackMontage && AnimInstance->Montage_IsPlaying(DeathMontage)) return;
 
 	int32 SectionNum = FMath::RandRange(1, 2);
 	FName SectionName = *FString::Printf(TEXT("Hit%d"), SectionNum);

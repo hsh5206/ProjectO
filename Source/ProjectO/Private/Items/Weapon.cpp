@@ -80,27 +80,56 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		ETraceTypeQuery::TraceTypeQuery1,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		BoxHit,
 		true
 	);
 
 	int32 TotalDamage = Cast<ABaseCharacter>(GetOwner())->CalculateDamage();
 
+	
+
 	if (BoxHit.GetActor())
 	{
-		UGameplayStatics::ApplyDamage(BoxHit.GetActor(),
-			TotalDamage,
-			GetInstigator()->GetController(),
-			this,
-			UDamageType::StaticClass()
-		);
-
-		IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
-		if (HitInterface)
+		if (GetOwner()->ActorHasTag(FName("Player")))
 		{
-			HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
+			if (BoxHit.GetActor()->ActorHasTag(FName("Enemy")))
+			{
+				UGameplayStatics::ApplyDamage(BoxHit.GetActor(),
+					TotalDamage,
+					GetInstigator()->GetController(),
+					this,
+					UDamageType::StaticClass()
+				);
+
+				IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
+				if (HitInterface)
+				{
+					HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
+				}
+				IgnoreActors.AddUnique(BoxHit.GetActor());
+			}
 		}
-		IgnoreActors.AddUnique(BoxHit.GetActor());
+		else if(GetOwner()->ActorHasTag(FName("Enemy")))
+		{
+			if (BoxHit.GetActor()->ActorHasTag(FName("Player")))
+			{
+				if (Cast<ABaseCharacter>(BoxHit.GetActor())->MovementState == EMovementState::EMS_GettingHit) return;
+
+				UGameplayStatics::ApplyDamage(BoxHit.GetActor(),
+					TotalDamage,
+					GetInstigator()->GetController(),
+					this,
+					UDamageType::StaticClass()
+				);
+
+				IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor());
+				if (HitInterface)
+				{
+					HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
+				}
+				IgnoreActors.AddUnique(BoxHit.GetActor());
+			}
+		}
 	}
 }

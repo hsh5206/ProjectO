@@ -4,6 +4,7 @@
 #include "Characters/BaseCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/CapsuleComponent.h"
 
 #include "Items/Weapon.h"
 #include "Components/BoxComponent.h"
@@ -33,6 +34,8 @@ void ABaseCharacter::Tick(float DeltaTime)
 
 void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 {
+	if (MovementState == EMovementState::EMS_Death) return;
+
 	if (GetHitSound)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, GetHitSound, ImpactPoint);
@@ -55,8 +58,7 @@ float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 
 	if (CharacterInfo.CharacterStat.Health == 0.f)
 	{
-		// SetEnemyState(EEnemyState::EES_Dead);
-		// Dead();
+		Death();
 	}
 	return DamageAmount;
 }
@@ -98,6 +100,25 @@ void ABaseCharacter::EquipUnequip_Implementation()
 			}
 		}
 	}
+}
+
+void ABaseCharacter::Death()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+
+	Weapon->Destroy();
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	auto controllerRef = GetController();
+	GetController()->UnPossess();
+	controllerRef->Destroy();
+	SetLifeSpan(5.f);
+
+	MovementState = EMovementState::EMS_Death;
 }
 
 void ABaseCharacter::AttachWeapon()

@@ -60,6 +60,9 @@ public:
 	class UAnimMontage* EquipMontage;
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void EquipUnequip();
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* DeathMontage;
+	void Death();
 
 	/** Notify Callback */
 	UFUNCTION(BlueprintCallable)

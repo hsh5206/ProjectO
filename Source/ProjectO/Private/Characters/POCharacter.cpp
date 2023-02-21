@@ -16,6 +16,7 @@
 #include "Characters/Enemy.h"
 #include "HUD/LockedOnWidgetComponent.h"
 #include "Characters/POPlayerController.h"
+#include "HUD/EnemyHealthBarWidgetComponent.h"
 
 APOCharacter::APOCharacter()
 {
@@ -41,6 +42,8 @@ APOCharacter::APOCharacter()
 
 	DodgeEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DodgeEffect"));
 	DodgeEffect->SetupAttachment(GetRootComponent());
+
+	Tags.Add(FName("Player"));
 }
 
 void APOCharacter::BeginPlay()
@@ -75,6 +78,17 @@ void APOCharacter::Tick(float DeltaTime)
 		{
 			CombatState = ECombatState::ECS_Armed;
 			LockedOnEnemy = nullptr;
+		}
+
+		if (LockedOnEnemy->MovementState == EMovementState::EMS_Death)
+		{
+			LockedOnEnemy->LockedOnImage->SetVisibility(false);
+			LockedOnEnemy = nullptr;
+			ChangeLockOn();
+			if (LockedOnEnemy == nullptr)
+			{
+				CombatState = ECombatState::ECS_Armed;
+			}
 		}
 	}
 
@@ -393,6 +407,7 @@ void APOCharacter::LockOn()
 		LockedOnEnemy = Cast<AEnemy>(SphereHit.GetActor());
 		LockedOnEnemy->LockedOnImage->SetVisibility(true);
 		CombatState = ECombatState::ECS_LockOn;
+		Cast<AEnemy>(LockedOnEnemy)->HealthBarWidget->SetVisibility(true);
 	}
 }
 
@@ -420,14 +435,17 @@ void APOCharacter::ChangeLockOn()
 		ObjectTypes,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		SphereHit,
 		true
 	);
 
 	if (SphereHit.GetActor())
 	{
-		LockedOnEnemy->LockedOnImage->SetVisibility(false);
+		if (LockedOnEnemy)
+		{
+			LockedOnEnemy->LockedOnImage->SetVisibility(false);
+		}
 		LockedOnEnemy = Cast<AEnemy>(SphereHit.GetActor());
 		LockedOnEnemy->LockedOnImage->SetVisibility(true);
 	}
@@ -496,6 +514,18 @@ FVector APOCharacter::GetDesiredVelocity(FVector None)
 		);
 	Velocity.Normalize();
 	return Velocity;
+}
+
+float APOCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	if (APOPlayerController* POController = Cast<APOPlayerController>(GetController()))
+	{
+		POController->SetHealthPercent(CharacterInfo.CharacterStat.MaxHealth, CharacterInfo.CharacterStat.Health);
+	}
+
+	return DamageAmount;
 }
 
 void APOCharacter::GetHit_Implementation(const FVector& ImpactPoint)
