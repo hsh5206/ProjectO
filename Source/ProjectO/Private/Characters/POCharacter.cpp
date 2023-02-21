@@ -9,7 +9,6 @@
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraComponent.h"
 
@@ -47,12 +46,6 @@ APOCharacter::APOCharacter()
 void APOCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (WeaponToSpawn)
-	{
-		Weapon = Cast<AWeapon>(GetWorld()->SpawnActor(WeaponToSpawn));
-		Weapon->Equip(GetMesh(), FName("BackWeaponSocket"), this);
-	}
 	
 	Controller = Cast<APOPlayerController>(GetController());
 	DodgeEffect->Deactivate();
@@ -334,55 +327,6 @@ void APOCharacter::Jump()
 	MovementState = EMovementState::EMS_Jumping;
 }
 
-void APOCharacter::EquipUnequip()
-{
-	if (MovementState == EMovementState::EMS_Attacking) return;
-
-	if (!Weapon) return;
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance && EquipMontage)
-	{
-		if (CombatState == ECombatState::ECS_Unarmed)
-		{
-			AnimInstance->Montage_Play(EquipMontage, 1.5f);
-			AnimInstance->Montage_JumpToSection(FName("Equip"), EquipMontage);
-			CombatState = ECombatState::ECS_Armed;
-		}
-		else
-		{
-			AnimInstance->Montage_Play(EquipMontage, 1.5f);
-			AnimInstance->Montage_JumpToSection(FName("Unequip"), EquipMontage);
-			CombatState = ECombatState::ECS_Unarmed;
-
-			if (LockedOnEnemy)
-			{
-				LockedOnEnemy = nullptr;
-			}
-		}
-	}
-}
-
-void APOCharacter::EnableWeaponCollision(ECollisionEnabled::Type CollisionEnabled)
-{
-	if (Weapon)
-	{
-		Weapon->GetWeaponBox()->SetCollisionEnabled(CollisionEnabled);
-		Weapon->IgnoreActors.Empty();
-	}
-}
-
-void APOCharacter::AttachWeapon()
-{
-	if (CombatState == ECombatState::ECS_Armed || CombatState == ECombatState::ECS_LockOn)
-	{
-		Weapon->AttachMeshToSocket(GetMesh(), FName("HandWeaponSocket"));
-	}
-	else
-	{
-		Weapon->AttachMeshToSocket(GetMesh(), FName("BackWeaponSocket"));
-	}
-}
-
 void APOCharacter::Sprint()
 {
 	if (CombatState == ECombatState::ECS_LockOn) return;
@@ -491,6 +435,7 @@ void APOCharacter::ChangeLockOn()
 
 void APOCharacter::Attack()
 {
+	if (MovementState == EMovementState::EMS_GettingHit) return;
 	if (MovementState == EMovementState::EMS_Dodging) return;
 	if (MovementState == EMovementState::EMS_Attacking && !CanNextCombo) return;
 	if (MovementState == EMovementState::EMS_Jumping) return;
@@ -537,11 +482,6 @@ void APOCharacter::AttackEndComboState()
 	CurrentCombo = 0;
 }
 
-int32 APOCharacter::CalculateDamage()
-{
-	return int32((Weapon->Damage + CharacterInfo.CharacterStat.Power) * ((100 + CharacterInfo.CharacterStat.Agility) / 100));
-}
-
 FVector APOCharacter::GetDesiredVelocity(FVector None)
 {
 	FRotator ControlRotationZ = FRotator(0.f, GetControlRotation().Yaw, 0.f);
@@ -556,4 +496,50 @@ FVector APOCharacter::GetDesiredVelocity(FVector None)
 		);
 	Velocity.Normalize();
 	return Velocity;
+}
+
+void APOCharacter::GetHit_Implementation(const FVector& ImpactPoint)
+{
+	Super::GetHit_Implementation(ImpactPoint);
+
+	if (DodgeEffect->IsActive())
+	{
+		DodgeEffect->Deactivate();
+	}
+
+	FVector Forward = GetActorForwardVector();
+	FVector ImpactLowered(ImpactPoint.X, ImpactPoint.Y, GetActorLocation().Z);
+	FVector ToHit = (ImpactLowered - GetActorLocation()).GetSafeNormal();
+
+	const double CosTheta = FVector::DotProduct(Forward, ToHit);
+	double Theta = FMath::Acos(CosTheta);
+	Theta = FMath::RadiansToDegrees(Theta);
+
+	const FVector CrossProduct = FVector::CrossProduct(Forward, ToHit);
+	if (CrossProduct.Z < 0)
+	{
+		Theta *= -1;
+	}
+
+	FName Section("B");
+
+	if (-45.f <= Theta && Theta < 45.f)
+	{
+		Section = FName("F");
+	}
+	else if (-135.f <= Theta && Theta < -45.f)
+	{
+		Section = FName("L");
+	}
+	else if (45.f <= Theta && Theta < 135.f)
+	{
+		Section = FName("R");
+	}
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && GetHitMontage)
+	{
+		AnimInstance->Montage_Play(GetHitMontage);
+		AnimInstance->Montage_JumpToSection(Section, GetHitMontage);
+	}
 }

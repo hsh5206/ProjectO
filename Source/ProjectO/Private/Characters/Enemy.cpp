@@ -7,6 +7,7 @@
 
 #include "HUD/EnemyHealthBarWidgetComponent.h"
 #include "HUD/LockedOnWidgetComponent.h"
+#include "Items/Weapon.h"
 
 AEnemy::AEnemy()
 {
@@ -29,7 +30,12 @@ void AEnemy::AttackBasic_Implementation()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-	int32 SectionNum = FMath::RandRange(1, 3);
+	if (AnimInstance && GetHitMontage && AnimInstance->Montage_IsPlaying(GetHitMontage))
+	{
+		AnimInstance->Montage_Stop(0.f, GetHitMontage);
+	}
+
+	int32 SectionNum = FMath::RandRange(1, 2);
 	FName SectionName = *FString::Printf(TEXT("Attack%d"), SectionNum);
 
 	if (AnimInstance && AttackMontage)
@@ -46,23 +52,16 @@ void AEnemy::AttackSkill_1_Implementation()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
+	if (AnimInstance && GetHitMontage && AnimInstance->Montage_IsPlaying(GetHitMontage))
+	{
+		AnimInstance->Montage_Stop(0.f, GetHitMontage);
+	}
+
 	if (AnimInstance && SkillMontage_1)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Skill_1"));
 		MovementState = EMovementState::EMS_Attacking;
 		AnimInstance->Montage_Play(SkillMontage_1);
-	}
-}
-
-void AEnemy::AttackSkill_2_Implementation()
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-	if (AnimInstance && SkillMontage_2)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Skill_2"));
-		MovementState = EMovementState::EMS_Attacking;
-		AnimInstance->Montage_Play(SkillMontage_2);
 	}
 }
 
@@ -83,14 +82,6 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
-void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
-{
-	Super::GetHit_Implementation(ImpactPoint);
-
-	FVector goVector = UKismetMathLibrary::GetDirectionUnitVector(ImpactPoint, GetActorLocation());
-	LaunchCharacter(FVector(goVector.X, goVector.Y, 0.f)*1000, false, false);
-}
-
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -102,4 +93,26 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	}
 
 	return DamageAmount;
+}
+
+void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
+{
+	Super::GetHit_Implementation(ImpactPoint);
+
+	FVector goVector = UKismetMathLibrary::GetDirectionUnitVector(ImpactPoint, GetActorLocation());
+	LaunchCharacter(FVector(goVector.X, goVector.Y, 0.f) * 1000, false, false);
+
+	if (MovementState == EMovementState::EMS_Attacking) return;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance && AttackMontage && AnimInstance->Montage_IsPlaying(AttackMontage)) return;
+
+	int32 SectionNum = FMath::RandRange(1, 2);
+	FName SectionName = *FString::Printf(TEXT("Hit%d"), SectionNum);
+
+	if (AnimInstance && GetHitMontage)
+	{
+		AnimInstance->Montage_Play(GetHitMontage);
+		AnimInstance->Montage_JumpToSection(SectionName, GetHitMontage);
+	}
 }

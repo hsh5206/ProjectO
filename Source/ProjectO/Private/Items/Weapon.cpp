@@ -6,7 +6,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
-#include "Characters/POCharacter.h"
+#include "Characters/BaseCharacter.h"
 #include "Interfaces/HitInterface.h"
 
 AWeapon::AWeapon()
@@ -19,6 +19,7 @@ AWeapon::AWeapon()
 
 	WeaponBox = CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponBox"));
 	WeaponBox->SetupAttachment(GetRootComponent());
+	WeaponBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	TraceStart = CreateDefaultSubobject<USceneComponent>(TEXT("TraceStart"));
 	TraceStart->SetupAttachment(GetRootComponent());
@@ -61,6 +62,7 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
+	ActorsToIgnore.Add(Cast<AActor>(GetOwner()));
 
 	for (AActor* Actor : IgnoreActors)
 	{
@@ -78,12 +80,12 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		ETraceTypeQuery::TraceTypeQuery1,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForDuration,
 		BoxHit,
 		true
 	);
 
-	int32 TotalDamage = Cast<APOCharacter>(GetOwner())->CalculateDamage();
+	int32 TotalDamage = Cast<ABaseCharacter>(GetOwner())->CalculateDamage();
 
 	if (BoxHit.GetActor())
 	{

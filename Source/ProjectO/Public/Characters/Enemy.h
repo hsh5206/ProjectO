@@ -39,8 +39,4 @@ public:
 	class UAnimMontage* SkillMontage_1;
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AttackSkill_1();
-	UPROPERTY(EditAnywhere)
-	class UAnimMontage* SkillMontage_2;
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void AttackSkill_2();
 };

@@ -16,6 +16,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -29,9 +31,6 @@ public:
 	FDodgeDirection DodgeDirection;
 	FName GetDodgeWay();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	class AEnemy* LockedOnEnemy;
-
 	/** Callbacks by Input */
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -40,29 +39,15 @@ public:
 	void WalkRun();
 	void Dodge();
 	void Jump();
-	void EquipUnequip();
 	void Sprint();
 	void SprintEnd();
 	void LockOn();
 	void ChangeLockOn();
 	void Attack();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class AWeapon* Weapon;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TSubclassOf<class AWeapon> WeaponToSpawn;
-	UFUNCTION(BlueprintCallable)
-	void EnableWeaponCollision(ECollisionEnabled::Type CollisionEnabled);
-
 	/** Montage */
 	UPROPERTY(EditAnywhere)
-	class UAnimMontage* EquipMontage;
-	UPROPERTY(EditAnywhere)
 	class UAnimMontage* DodgeMontage;
-
-	/** Notify Callback */
-	UFUNCTION(BlueprintCallable)
-	void AttachWeapon();
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float Input_FB;
@@ -87,8 +72,6 @@ public:
 	class USoundBase* DashSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	class UNiagaraComponent* DodgeEffect;
-
-	int32 CalculateDamage();
 
 	virtual FVector GetDesiredVelocity(FVector None) override;
 
