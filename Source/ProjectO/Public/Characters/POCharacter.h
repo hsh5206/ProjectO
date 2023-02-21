@@ -45,6 +45,7 @@ public:
 	void LockOn();
 	void ChangeLockOn();
 	void Attack();
+	void Block();
 
 	/** Montage */
 	UPROPERTY(EditAnywhere)

@@ -76,6 +76,7 @@ float ABaseCharacter::CalculateDamage()
 
 void ABaseCharacter::EquipUnequip_Implementation()
 {
+	if (MovementState == EMovementState::EMS_Blocking) return;
 	if (MovementState == EMovementState::EMS_Attacking) return;
 
 	if (!Weapon) return;

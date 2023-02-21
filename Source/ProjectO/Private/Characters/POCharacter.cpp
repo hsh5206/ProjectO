@@ -134,6 +134,8 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("LockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::LockOn);
 	PlayerInputComponent->BindAction(FName("ChangeLockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::ChangeLockOn);
 	PlayerInputComponent->BindAction(FName("Attack"), EInputEvent::IE_Pressed, this, &APOCharacter::Attack);
+	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Pressed, this, &APOCharacter::Block);
+	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Released, this, &APOCharacter::Block);
 }
 
 void APOCharacter::MoveForward(float value)
@@ -246,6 +248,7 @@ void APOCharacter::Dodge()
 {
 	if (CharacterInfo.CharacterStat.Stamina < 30) return;
 
+	if (MovementState == EMovementState::EMS_Blocking) return;
 	if (MovementState == EMovementState::EMS_Jumping) return;
 	if (MovementState == EMovementState::EMS_Dodging) return;
 	if (MovementState == EMovementState::EMS_Attacking) return;
@@ -331,7 +334,9 @@ FName APOCharacter::GetDodgeWay()
 
 void APOCharacter::Jump()
 {
+	if (MovementState == EMovementState::EMS_Blocking) return;
 	if (MovementState == EMovementState::EMS_Attacking) return;
+
 	if (MovementState == EMovementState::EMS_Dodging)
 	{
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -344,6 +349,7 @@ void APOCharacter::Jump()
 
 void APOCharacter::Sprint()
 {
+	if (MovementState == EMovementState::EMS_Blocking) return;
 	if (CombatState == ECombatState::ECS_LockOn) return;
 
 	if (CharacterInfo.CharacterStat.Stamina > 20.f) bCanSprint = true;
@@ -356,7 +362,9 @@ void APOCharacter::Sprint()
 
 void APOCharacter::SprintEnd()
 {
+	if (MovementState == EMovementState::EMS_Blocking) return;
 	if (CombatState == ECombatState::ECS_LockOn) return;
+
 	MovementState = EMovementState::EMS_Running;
 }
 
@@ -454,6 +462,7 @@ void APOCharacter::ChangeLockOn()
 
 void APOCharacter::Attack()
 {
+	if (MovementState == EMovementState::EMS_Blocking) return;
 	if (MovementState == EMovementState::EMS_GettingHit) return;
 	if (MovementState == EMovementState::EMS_Dodging) return;
 	if (MovementState == EMovementState::EMS_Attacking && !CanNextCombo) return;
@@ -487,6 +496,13 @@ void APOCharacter::Attack()
 		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
 		MovementState = EMovementState::EMS_Attacking;
 	}
+}
+
+void APOCharacter::Block()
+{
+	if (CombatState == ECombatState::ECS_Unarmed) return;
+
+	MovementState = MovementState == EMovementState::EMS_Blocking ? EMovementState::EMS_Running : EMovementState::EMS_Blocking;
 }
 
 void APOCharacter::AttackStartComboState()
