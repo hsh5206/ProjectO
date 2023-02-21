@@ -80,8 +80,9 @@ void APOCharacter::Tick(float DeltaTime)
 			LockedOnEnemy = nullptr;
 		}
 
-		if (LockedOnEnemy->MovementState == EMovementState::EMS_Death)
+		if (LockedOnEnemy && LockedOnEnemy->MovementState == EMovementState::EMS_Death)
 		{
+			LockedOnEnemy->HealthBarWidget->SetVisibility(false);
 			LockedOnEnemy->LockedOnImage->SetVisibility(false);
 			LockedOnEnemy = nullptr;
 			ChangeLockOn();
