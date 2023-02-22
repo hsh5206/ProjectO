@@ -30,3 +30,11 @@ public:
 	bool bRight = false;
 	bool bLeft = false;
 };
+
+UENUM(BlueprintType)
+enum class EAIState : uint8
+{
+	EAIS_Passive UMETA(DisplayName = "Passive"),
+	EAIS_Chase UMETA(DisplayName = "Chase"),
+	EAIS_Battle UMETA(DisplayName = "Battle")
+};

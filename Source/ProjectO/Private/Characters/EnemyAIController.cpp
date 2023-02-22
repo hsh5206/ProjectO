@@ -7,14 +7,17 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AIPerceptionSystem.h"
 
 #include "Characters/POCharacter.h"
+#include "Characters/Enemy.h"
 
 const FName AEnemyAIController::Key_HomePos(TEXT("HomePos"));
 const FName AEnemyAIController::Key_PatrolPos(TEXT("PatrolPos"));
 const FName AEnemyAIController::Key_Target(TEXT("Target"));
 const FName AEnemyAIController::Key_bDetected(TEXT("bDetected"));
-const FName AEnemyAIController::Key_EnemyState(TEXT("EEnemyState"));
+const FName AEnemyAIController::Key_AIState(TEXT("EAIState"));
+const FName AEnemyAIController::Key_bCanPatrol(TEXT("bCanPatrol"));
 
 AEnemyAIController::AEnemyAIController()
 {
@@ -40,13 +43,12 @@ AEnemyAIController::AEnemyAIController()
 	SightConfig->PeripheralVisionAngleDegrees = AIFieldOfView;
 	SightConfig->SetMaxAge(AISightAge);
 	SightConfig->AutoSuccessRangeFromLastSeenLocation = AILastSeenLocation;
-
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 
 	GetPerceptionComponent()->SetDominantSense(*SightConfig->GetSenseImplementation());
-	GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AEnemyAIController::OnTargetDetected);
+	GetPerceptionComponent()->OnPerceptionUpdated.AddDynamic(this, &AEnemyAIController::PerceptionUpdated);
 	GetPerceptionComponent()->ConfigureSense(*SightConfig);
 }
 
@@ -54,10 +56,13 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
+	ControlledPawn = InPawn;
+
 	if (UseBlackboard(BBAsset, BlackboardComponent))
 	{
 		Blackboard->SetValueAsVector(Key_HomePos, InPawn->GetActorLocation());
 		RunBehaviorTree(BTAsset);
+		Blackboard->SetValueAsBool(Key_bCanPatrol ,Cast<AEnemy>(InPawn)->CanPatrol);
 	}
 }
 
@@ -66,11 +71,30 @@ void AEnemyAIController::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 }
 
-void AEnemyAIController::OnTargetDetected(AActor* actor, FAIStimulus const Stimulus)
+void AEnemyAIController::PerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 {
-	if (auto const target = Cast<APOCharacter>(actor))
+	for (AActor* UpdatedActor : UpdatedActors)
 	{
-		Blackboard->SetValueAsBool(Key_bDetected, Stimulus.WasSuccessfullySensed());
-		Blackboard->SetValueAsObject(Key_Target, target);
+		if (APOCharacter* POCharacter = Cast<APOCharacter>(UpdatedActor))
+		{
+			FActorPerceptionBlueprintInfo Info;
+			if (GetAIPerceptionComponent()->GetActorsPerception(UpdatedActor, Info))
+			{
+				for (FAIStimulus Stim : Info.LastSensedStimuli)
+				{
+					if (Stim.WasSuccessfullySensed())
+					{
+						Cast<AEnemy>(ControlledPawn)->LockedOnEnemy = UpdatedActor;
+						Blackboard->SetValueAsObject(Key_Target, UpdatedActor);
+						Blackboard->SetValueAsEnum(Key_AIState, (uint8)EAIState::EAIS_Chase);
+					}
+					/*else
+					{
+						Blackboard->SetValueAsObject(Key_Target, nullptr);
+						Blackboard->SetValueAsEnum(Key_AIState, (uint8)EAIState::EAIS_Passive);
+					}*/
+				}
+			}
+		}
 	}
 }

@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Characters/BaseCharacter.h"
+#include "Interfaces/AIHelperInterface.h"
 #include "POCharacter.generated.h"
 
 UCLASS()
-class PROJECTO_API APOCharacter : public ABaseCharacter
+class PROJECTO_API APOCharacter : public ABaseCharacter, public IAIHelperInterface
 {
 	GENERATED_BODY()
 
@@ -46,10 +47,20 @@ public:
 	void ChangeLockOn();
 	void Attack();
 	void Block();
+	void BlockEnd();
+
+	void BlockBreaked();
+	bool bIsBlockBreaked = false;
+	FTimerHandle BlockResetTimer;
+	void BlockReset();
 
 	/** Montage */
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* DodgeMontage;
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* BlockingMontage;
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* BlockingBreakMontage;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float Input_FB;
@@ -76,6 +87,10 @@ public:
 	class UNiagaraComponent* DodgeEffect;
 
 	virtual FVector GetDesiredVelocity(FVector None) override;
+
+	/** AIHelper */
+	virtual bool IsAlive_Implementation() override;
+	virtual bool IsPlayer_Implementation() override;
 
 private:
 	bool bCanSprint = true;

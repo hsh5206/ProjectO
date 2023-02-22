@@ -34,7 +34,23 @@ void ABaseCharacter::Tick(float DeltaTime)
 
 void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 {
-	if (MovementState == EMovementState::EMS_Death) return;
+	if (MovementState == EMovementState::EMS_Dodging) return;
+
+	if (MovementState == EMovementState::EMS_Blocking)
+	{
+		if (GetBlockingSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, GetBlockingSound, ImpactPoint);
+		}
+		if (GetBlockingParticle)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GetBlockingParticle, ImpactPoint);
+		}
+
+		FVector goVector = -GetActorForwardVector();
+		LaunchCharacter(FVector(goVector.X, goVector.Y, 0.f) * 1000, false, false);
+		return;
+	}
 
 	if (GetHitSound)
 	{
@@ -49,11 +65,16 @@ void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), CharacterGetHitSound, ImpactPoint);
 	}
 
+	if (MovementState == EMovementState::EMS_Death) return;
+
 	MovementState = EMovementState::EMS_GettingHit;
 }
 
 float ABaseCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	if (MovementState == EMovementState::EMS_Blocking) return 0.f;
+	if (MovementState == EMovementState::EMS_Dodging) return 0.f;
+
 	CharacterInfo.CharacterStat.Health = FMath::Clamp(CharacterInfo.CharacterStat.Health - DamageAmount, 0.f, CharacterInfo.CharacterStat.MaxHealth);
 
 	if (CharacterInfo.CharacterStat.Health == 0.f)
@@ -109,6 +130,11 @@ void ABaseCharacter::Death()
 	if (AnimInstance && DeathMontage)
 	{
 		AnimInstance->Montage_Play(DeathMontage);
+	}
+
+	if (DeathSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
 	}
 
 	Weapon->Destroy();

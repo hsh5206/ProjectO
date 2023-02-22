@@ -80,10 +80,10 @@ void APOCharacter::Tick(float DeltaTime)
 			LockedOnEnemy = nullptr;
 		}
 
-		if (LockedOnEnemy && LockedOnEnemy->MovementState == EMovementState::EMS_Death)
+		if (LockedOnEnemy && Cast<AEnemy>(LockedOnEnemy)->MovementState == EMovementState::EMS_Death)
 		{
-			LockedOnEnemy->HealthBarWidget->SetVisibility(false);
-			LockedOnEnemy->LockedOnImage->SetVisibility(false);
+			Cast<AEnemy>(LockedOnEnemy)->HealthBarWidget->SetVisibility(false);
+			Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(false);
 			LockedOnEnemy = nullptr;
 			ChangeLockOn();
 			if (LockedOnEnemy == nullptr)
@@ -111,6 +111,7 @@ void APOCharacter::Tick(float DeltaTime)
 
 	else if (Controller && CharacterInfo.CharacterStat.Stamina != CharacterInfo.CharacterStat.MaxStamina)
 	{
+		if (MovementState == EMovementState::EMS_Blocking || bIsBlockBreaked) return;
 		CharacterInfo.CharacterStat.Stamina += DeltaStamina;
 		Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
 	}
@@ -135,7 +136,7 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("ChangeLockOn"), EInputEvent::IE_Pressed, this, &APOCharacter::ChangeLockOn);
 	PlayerInputComponent->BindAction(FName("Attack"), EInputEvent::IE_Pressed, this, &APOCharacter::Attack);
 	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Pressed, this, &APOCharacter::Block);
-	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Released, this, &APOCharacter::Block);
+	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Released, this, &APOCharacter::BlockEnd);
 }
 
 void APOCharacter::MoveForward(float value)
@@ -258,7 +259,7 @@ void APOCharacter::Dodge()
 	if (EquipMontage && AnimInstance->Montage_IsPlaying(EquipMontage)) return;
 
 	MovementState = EMovementState::EMS_Dodging;
-	CharacterInfo.CharacterStat.Stamina -= 30.f;
+	CharacterInfo.CharacterStat.Stamina -= 40.f;
 	Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
 
 	DodgeEffect->Activate();
@@ -373,7 +374,7 @@ void APOCharacter::LockOn()
 	if (CombatState == ECombatState::ECS_LockOn)
 	{
 		CombatState = ECombatState::ECS_Armed;
-		LockedOnEnemy->LockedOnImage->SetVisibility(false);
+		Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(false);
 		LockedOnEnemy = nullptr;
 		return;
 	}
@@ -414,7 +415,7 @@ void APOCharacter::LockOn()
 			}
 		}
 		LockedOnEnemy = Cast<AEnemy>(SphereHit.GetActor());
-		LockedOnEnemy->LockedOnImage->SetVisibility(true);
+		Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(true);
 		CombatState = ECombatState::ECS_LockOn;
 		Cast<AEnemy>(LockedOnEnemy)->HealthBarWidget->SetVisibility(true);
 	}
@@ -453,10 +454,10 @@ void APOCharacter::ChangeLockOn()
 	{
 		if (LockedOnEnemy)
 		{
-			LockedOnEnemy->LockedOnImage->SetVisibility(false);
+			Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(false);
 		}
 		LockedOnEnemy = Cast<AEnemy>(SphereHit.GetActor());
-		LockedOnEnemy->LockedOnImage->SetVisibility(true);
+		Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(true);
 	}
 }
 
@@ -500,9 +501,36 @@ void APOCharacter::Attack()
 
 void APOCharacter::Block()
 {
+	if (MovementState == EMovementState::EMS_Attacking) return;
+	if (MovementState == EMovementState::EMS_Dodging) return;
 	if (CombatState == ECombatState::ECS_Unarmed) return;
 
-	MovementState = MovementState == EMovementState::EMS_Blocking ? EMovementState::EMS_Running : EMovementState::EMS_Blocking;
+	MovementState = EMovementState::EMS_Blocking;
+}
+
+void APOCharacter::BlockEnd()
+{
+	if (MovementState == EMovementState::EMS_Dodging) return;
+	if (CombatState == ECombatState::ECS_Unarmed) return;
+
+	MovementState = EMovementState::EMS_Running;
+}
+
+void APOCharacter::BlockBreaked()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && BlockingBreakMontage)
+	{
+		AnimInstance->Montage_Play(BlockingBreakMontage);
+	}
+	bIsBlockBreaked = true;
+	GetWorldTimerManager().SetTimer(BlockResetTimer, this, &APOCharacter::BlockReset, 4.f, false);
+}
+
+void APOCharacter::BlockReset()
+{
+	GetWorldTimerManager().ClearTimer(BlockResetTimer);
+	bIsBlockBreaked = false;
 }
 
 void APOCharacter::AttackStartComboState()
@@ -549,9 +577,25 @@ void APOCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 {
 	Super::GetHit_Implementation(ImpactPoint);
 
-	if (DodgeEffect->IsActive())
-	{
-		DodgeEffect->Deactivate();
+	if (MovementState == EMovementState::EMS_Dodging) return;
+
+	if (MovementState == EMovementState::EMS_Blocking) {
+		if (CharacterInfo.CharacterStat.Stamina >= 20.f)
+		{
+			CharacterInfo.CharacterStat.Stamina -= 20.f;
+			Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
+			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+			if (AnimInstance && BlockingMontage)
+			{
+				AnimInstance->Montage_Play(BlockingMontage);
+			}
+		}
+		else
+		{
+			CharacterInfo.CharacterStat.Stamina = 0.f;
+			BlockBreaked();
+		}
+		return;
 	}
 
 	FVector Forward = GetActorForwardVector();
@@ -589,4 +633,15 @@ void APOCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 		AnimInstance->Montage_Play(GetHitMontage);
 		AnimInstance->Montage_JumpToSection(Section, GetHitMontage);
 	}
+}
+
+
+bool APOCharacter::IsAlive_Implementation()
+{
+	if (MovementState == EMovementState::EMS_Death) return true;
+	else return false;
+}
+bool APOCharacter::IsPlayer_Implementation()
+{
+	return true;
 }

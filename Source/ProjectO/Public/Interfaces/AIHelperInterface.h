@@ -4,19 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "HitInterface.generated.h"
+#include "AIHelperInterface.generated.h"
 
 UINTERFACE(MinimalAPI)
-class UHitInterface : public UInterface
+class UAIHelperInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class PROJECTO_API IHitInterface
+class PROJECTO_API IAIHelperInterface
 {
 	GENERATED_BODY()
 
 public:
 	UFUNCTION(BlueprintNativeEvent)
-	void GetHit(const FVector& ImpactPoint);
+	bool IsAlive();
+	UFUNCTION(BlueprintNativeEvent)
+	bool IsPlayer();
 };

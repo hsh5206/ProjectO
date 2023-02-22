@@ -52,6 +52,12 @@ public:
 	class UParticleSystem* GetHitParticle;
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* GetHitMontage;
+	UPROPERTY(EditAnywhere)
+	class USoundBase* GetBlockingSound;
+	UPROPERTY(EditAnywhere)
+	class UParticleSystem* GetBlockingParticle;
+	UPROPERTY(EditAnywhere)
+	class USoundBase* DeathSound;
 
 	/** Montage*/
 	UPROPERTY(EditAnywhere)
@@ -72,7 +78,7 @@ public:
 	bool bIsMoving;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	class AEnemy* LockedOnEnemy;
+	AActor* LockedOnEnemy;
 
 	UFUNCTION(BlueprintCallable)
 	virtual FVector GetDesiredVelocity(FVector Target);

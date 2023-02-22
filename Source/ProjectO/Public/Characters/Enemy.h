@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Characters/BaseCharacter.h"
+#include "Interfaces/AIHelperInterface.h"
 #include "Enemy.generated.h"
 
 UCLASS()
-class PROJECTO_API AEnemy : public ABaseCharacter
+class PROJECTO_API AEnemy : public ABaseCharacter, public IAIHelperInterface
 {
 	GENERATED_BODY()
 
@@ -39,4 +40,12 @@ public:
 	class UAnimMontage* SkillMontage_1;
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AttackSkill_1();
+
+	/** AIHelper */
+	virtual bool IsAlive_Implementation() override;
+	virtual bool IsPlayer_Implementation() override;
+
+	/** AI */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool CanPatrol = true;
 };

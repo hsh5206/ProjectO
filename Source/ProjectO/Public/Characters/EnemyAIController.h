@@ -19,7 +19,8 @@ public:
 	static const FName Key_PatrolPos;
 	static const FName Key_Target;
 	static const FName Key_bDetected;
-	static const FName Key_EnemyState;
+	static const FName Key_AIState;
+	static const FName Key_bCanPatrol;
 	
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
@@ -32,6 +33,8 @@ private:
 	class UBehaviorTree* BTAsset;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	class UBlackboardData* BBAsset;
+
+	APawn* ControlledPawn;
 
 public:
 	/** AI Perception */
@@ -48,5 +51,5 @@ public:
 	float AILastSeenLocation = 900.f;
 
 	UFUNCTION(BlueprintCallable)
-	void OnTargetDetected(AActor* actor, FAIStimulus const Stimulus);
+	void PerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 };

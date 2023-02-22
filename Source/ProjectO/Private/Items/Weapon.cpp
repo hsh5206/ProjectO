@@ -8,6 +8,7 @@
 
 #include "Characters/BaseCharacter.h"
 #include "Interfaces/HitInterface.h"
+#include "Characters/EnemyAIController.h"
 
 AWeapon::AWeapon()
 {
@@ -87,10 +88,9 @@ void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 
 	int32 TotalDamage = Cast<ABaseCharacter>(GetOwner())->CalculateDamage();
 
-	
-
 	if (BoxHit.GetActor())
 	{
+		
 		if (GetOwner()->ActorHasTag(FName("Player")))
 		{
 			if (BoxHit.GetActor()->ActorHasTag(FName("Enemy")))
