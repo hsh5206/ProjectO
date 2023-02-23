@@ -12,6 +12,6 @@ struct FCharacterInfo : public FTableRowBase
 public:
 	UPROPERTY(EditAnywhere)
 	FName CharacterName = FName("Default");
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCharacterStat CharacterStat;
 };

@@ -26,7 +26,7 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(BlueprintReadOnly)
-	class AEnemy* Character;
+	class ABaseCharacter* Character;
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	class UCharacterMovementComponent* Movement;
 

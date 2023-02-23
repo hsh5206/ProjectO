@@ -14,6 +14,7 @@
 
 #include "Items/Weapon.h"
 #include "Characters/Enemy.h"
+#include "Characters/EnemyBoss.h"
 #include "HUD/LockedOnWidgetComponent.h"
 #include "Characters/POPlayerController.h"
 #include "HUD/EnemyHealthBarWidgetComponent.h"
@@ -80,15 +81,35 @@ void APOCharacter::Tick(float DeltaTime)
 			LockedOnEnemy = nullptr;
 		}
 
-		if (LockedOnEnemy && Cast<AEnemy>(LockedOnEnemy)->MovementState == EMovementState::EMS_Death)
+		if (LockedOnEnemy)
 		{
-			Cast<AEnemy>(LockedOnEnemy)->HealthBarWidget->SetVisibility(false);
-			Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(false);
-			LockedOnEnemy = nullptr;
-			ChangeLockOn();
-			if (LockedOnEnemy == nullptr)
+			if (AEnemy* Enemy = Cast<AEnemy>(LockedOnEnemy))
 			{
-				CombatState = ECombatState::ECS_Armed;
+				if (Enemy->MovementState == EMovementState::EMS_Death)
+				{
+					Enemy->HealthBarWidget->SetVisibility(false);
+					Enemy->LockedOnImage->SetVisibility(false);
+					LockedOnEnemy = nullptr;
+					ChangeLockOn();
+					if (LockedOnEnemy == nullptr)
+					{
+						CombatState = ECombatState::ECS_Armed;
+					}
+				}
+			}
+
+			if (AEnemyBoss* Boss = Cast<AEnemyBoss>(LockedOnEnemy))
+			{
+				if (Boss->MovementState == EMovementState::EMS_Death)
+				{
+					Boss->LockedOnImage->SetVisibility(false);
+					LockedOnEnemy = nullptr;
+					ChangeLockOn();
+					if (LockedOnEnemy == nullptr)
+					{
+						CombatState = ECombatState::ECS_Armed;
+					}
+				}
 			}
 		}
 	}
@@ -374,7 +395,8 @@ void APOCharacter::LockOn()
 	if (CombatState == ECombatState::ECS_LockOn)
 	{
 		CombatState = ECombatState::ECS_Armed;
-		Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(false);
+		if(Cast<AEnemy>(LockedOnEnemy)) Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(false);
+		if (Cast<AEnemyBoss>(LockedOnEnemy)) Cast<AEnemyBoss>(LockedOnEnemy)->LockedOnImage->SetVisibility(false);
 		LockedOnEnemy = nullptr;
 		return;
 	}
@@ -414,10 +436,21 @@ void APOCharacter::LockOn()
 				AnimInstance->Montage_JumpToSection(FName("Equip"), EquipMontage);
 			}
 		}
-		LockedOnEnemy = Cast<AEnemy>(SphereHit.GetActor());
-		Cast<AEnemy>(LockedOnEnemy)->LockedOnImage->SetVisibility(true);
-		CombatState = ECombatState::ECS_LockOn;
-		Cast<AEnemy>(LockedOnEnemy)->HealthBarWidget->SetVisibility(true);
+
+		if (AEnemy* Enemy = Cast<AEnemy>(SphereHit.GetActor()))
+		{
+			LockedOnEnemy = Enemy;
+			Enemy->LockedOnImage->SetVisibility(true);
+			CombatState = ECombatState::ECS_LockOn;
+			Enemy->HealthBarWidget->SetVisibility(true);
+		}
+
+		if (AEnemyBoss* Boss = Cast<AEnemyBoss>(SphereHit.GetActor()))
+		{
+			LockedOnEnemy = Boss;
+			Boss->LockedOnImage->SetVisibility(true);
+			CombatState = ECombatState::ECS_LockOn;
+		}
 	}
 }
 

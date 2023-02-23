@@ -21,18 +21,15 @@ public:
 	static const FName Key_bDetected;
 	static const FName Key_AIState;
 	static const FName Key_bCanPatrol;
+	static const FName Key_Health;
 	
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaSeconds) override;
 
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	UBlackboardComponent* BlackboardComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
-	class UBehaviorTree* BTAsset;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
-	class UBlackboardData* BBAsset;
 
 	APawn* ControlledPawn;
 

@@ -3,15 +3,28 @@
 
 #include "Characters/EnemyAnimInstance.h"
 #include "Characters/Enemy.h"
+#include "Characters/EnemyBoss.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 void UEnemyAnimInstance::NativeInitializeAnimation()
 {
-	Character = Cast<AEnemy>(TryGetPawnOwner());
-	if (Character)
+	if (Cast<AEnemy>(TryGetPawnOwner()))
 	{
-		Movement = Character->GetCharacterMovement();
+		Character = Cast<AEnemy>(TryGetPawnOwner());
+		if (Character)
+		{
+			Movement = Character->GetCharacterMovement();
+		}
+	}
+	
+	if (Cast<AEnemyBoss>(TryGetPawnOwner()))
+	{
+		Character = Cast<AEnemyBoss>(TryGetPawnOwner());
+		if (Character)
+		{
+			Movement = Character->GetCharacterMovement();
+		}
 	}
 }
 

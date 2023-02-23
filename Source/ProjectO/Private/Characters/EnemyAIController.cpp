@@ -11,6 +11,7 @@
 
 #include "Characters/POCharacter.h"
 #include "Characters/Enemy.h"
+#include "Characters/EnemyBoss.h"
 
 const FName AEnemyAIController::Key_HomePos(TEXT("HomePos"));
 const FName AEnemyAIController::Key_PatrolPos(TEXT("PatrolPos"));
@@ -19,11 +20,13 @@ const FName AEnemyAIController::Key_bDetected(TEXT("bDetected"));
 const FName AEnemyAIController::Key_AIState(TEXT("EAIState"));
 const FName AEnemyAIController::Key_bCanPatrol(TEXT("bCanPatrol"));
 
+const FName AEnemyAIController::Key_Health(TEXT("Health"));
+
 AEnemyAIController::AEnemyAIController()
 {
 	BlackboardComponent = Blackboard.Get();
 
-	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTObject(TEXT("/Game/Blueprints/Enemy/AI/BT_Enemy.BT_Enemy"));
+	/*static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTObject(TEXT("/Game/Blueprints/Enemy/AI/BT_Enemy.BT_Enemy"));
 	if (BTObject.Succeeded())
 	{
 		BTAsset = BTObject.Object;
@@ -33,7 +36,7 @@ AEnemyAIController::AEnemyAIController()
 	if (BBObject.Succeeded())
 	{
 		BBAsset = BBObject.Object;
-	}
+	}*/
 
 	SetPerceptionComponent(*CreateOptionalDefaultSubobject<UAIPerceptionComponent>(TEXT("AI Perception")));
 	SightConfig = CreateOptionalDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
@@ -58,11 +61,23 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 
 	ControlledPawn = InPawn;
 
-	if (UseBlackboard(BBAsset, BlackboardComponent))
+	if(AEnemy* Enemy = Cast<AEnemy>(InPawn))
+	{ 
+		if (UseBlackboard(Enemy->BBAsset, BlackboardComponent))
+		{
+			Blackboard->SetValueAsVector(Key_HomePos, InPawn->GetActorLocation());
+			RunBehaviorTree(Enemy->BTAsset);
+			Blackboard->SetValueAsBool(Key_bCanPatrol, Cast<AEnemy>(InPawn)->CanPatrol);
+		}
+	}
+
+	if (AEnemyBoss* Boss = Cast<AEnemyBoss>(InPawn))
 	{
-		Blackboard->SetValueAsVector(Key_HomePos, InPawn->GetActorLocation());
-		RunBehaviorTree(BTAsset);
-		Blackboard->SetValueAsBool(Key_bCanPatrol ,Cast<AEnemy>(InPawn)->CanPatrol);
+		if (UseBlackboard(Boss->BBAsset, BlackboardComponent))
+		{
+			Blackboard->SetValueAsVector(Key_HomePos, InPawn->GetActorLocation());
+			RunBehaviorTree(Boss->BTAsset);
+		}
 	}
 }
 
@@ -84,9 +99,17 @@ void AEnemyAIController::PerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 				{
 					if (Stim.WasSuccessfullySensed())
 					{
-						Cast<AEnemy>(ControlledPawn)->LockedOnEnemy = UpdatedActor;
-						Blackboard->SetValueAsObject(Key_Target, UpdatedActor);
-						Blackboard->SetValueAsEnum(Key_AIState, (uint8)EAIState::EAIS_Chase);
+						if (AEnemy* Enemy = Cast<AEnemy>(ControlledPawn))
+						{
+							Enemy->LockedOnEnemy = UpdatedActor;
+							Blackboard->SetValueAsObject(Key_Target, UpdatedActor);
+							Blackboard->SetValueAsEnum(Key_AIState, (uint8)EAIState::EAIS_Chase);
+						}
+						if (AEnemyBoss* Boss= Cast<AEnemyBoss>(ControlledPawn))
+						{
+							Boss->LockedOnEnemy = UpdatedActor;
+							Blackboard->SetValueAsObject(Key_Target, UpdatedActor);
+						}
 					}
 					/*else
 					{

@@ -39,7 +39,7 @@ public:
 	ECombatState CombatState = ECombatState::ECS_Unarmed;
 
 	/** Character Info */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FCharacterInfo CharacterInfo;
 	UPROPERTY(EditAnywhere)
 	class USoundBase* CharacterAttackSound;

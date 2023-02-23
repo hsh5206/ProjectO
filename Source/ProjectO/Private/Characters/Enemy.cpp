@@ -116,8 +116,8 @@ void AEnemy::GetHit_Implementation(const FVector& ImpactPoint)
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
 	if (AnimInstance && AttackMontage && AnimInstance->Montage_IsPlaying(AttackMontage)) return;
-	if (AnimInstance && AttackMontage && AnimInstance->Montage_IsPlaying(DeathMontage)) return;
-	if (AnimInstance && AttackMontage && AnimInstance->Montage_IsPlaying(EquipMontage)) return;
+	if (AnimInstance && DeathMontage && AnimInstance->Montage_IsPlaying(DeathMontage)) return;
+	if (AnimInstance && EquipMontage && AnimInstance->Montage_IsPlaying(EquipMontage)) return;
 
 	int32 SectionNum = FMath::RandRange(1, 2);
 	FName SectionName = *FString::Printf(TEXT("Hit%d"), SectionNum);

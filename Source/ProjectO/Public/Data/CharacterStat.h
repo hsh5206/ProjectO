@@ -20,9 +20,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	int32 Durability = 5; // ³»±¸
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float MaxHealth = 100 + Vigor * 5;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float Health = MaxHealth;
 	UPROPERTY(VisibleAnywhere)
 	float MaxStamina = 100 + Endurance * 5;
