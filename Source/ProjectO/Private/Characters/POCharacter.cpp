@@ -416,11 +416,11 @@ void APOCharacter::LockOn()
 		this,
 		Start,
 		End,
-		400.f,
+		700.f,
 		ObjectTypes,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		SphereHit,
 		true
 	);
