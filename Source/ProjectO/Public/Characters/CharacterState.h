@@ -11,7 +11,8 @@ enum class EMovementState : uint8
 	EMS_Attacking UMETA(DisplayName = "Attacking"),
 	EMS_Blocking UMETA(DisplayName = "Blocking"),
 	EMS_GettingHit UMETA(DisplayName = "GettingHit"),
-	EMS_Death UMETA(DisplayName = "Death")
+	EMS_Death UMETA(DisplayName = "Death"),
+	EMS_Drinking UMETA(DisplayName = "Drinking")
 };
 
 UENUM(BlueprintType)

@@ -36,15 +36,14 @@ void APOPlayerController::SetHealthPercent(float Max, float Cur)
 	if (MainWidget)
 	{
 		MainWidget->HealthBar->SetPercent(Cur / Max);
-		SetHealthString(Max, Cur);
 	}
 }
 
-void APOPlayerController::SetHealthString(float Max, float Cur)
+void APOPlayerController::SetPortionText(int32 Num)
 {
 	if (MainWidget)
 	{
-		MainWidget->HealthString->SetText(FText::FromString(FString::Printf(TEXT("%d / %d"), int(Cur), int(Max))));
+		MainWidget->PortionText->SetText(FText::FromString(FString::Printf(TEXT("%d"), Num)));
 	}
 }
 
@@ -58,7 +57,7 @@ void APOPlayerController::BeginPlay()
 		APOCharacter* POCharacter = Cast<APOCharacter>(GetPawn());
 		if (POCharacter)
 		{
-			SetHealthString(POCharacter->CharacterInfo.CharacterStat.MaxHealth, POCharacter->CharacterInfo.CharacterStat.Health);
+			SetPortionText(POCharacter->PortionNum);
 		}
 	}
 }

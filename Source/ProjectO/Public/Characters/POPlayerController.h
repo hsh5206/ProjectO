@@ -24,7 +24,7 @@ public:
 
 	void SetStaminaPercent(float Max, float Cur);
 	void SetHealthPercent(float Max, float Cur);
-	void SetHealthString(float Max, float Cur);
+	void SetPortionText(int32 Num);
 
 protected:
 	virtual void BeginPlay() override;

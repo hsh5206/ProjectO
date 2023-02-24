@@ -18,6 +18,7 @@
 #include "HUD/LockedOnWidgetComponent.h"
 #include "Characters/POPlayerController.h"
 #include "HUD/EnemyHealthBarWidgetComponent.h"
+#include "HUD/MainWidget.h"
 
 APOCharacter::APOCharacter()
 {
@@ -158,6 +159,8 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("Attack"), EInputEvent::IE_Pressed, this, &APOCharacter::Attack);
 	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Pressed, this, &APOCharacter::Block);
 	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Released, this, &APOCharacter::BlockEnd);
+	PlayerInputComponent->BindAction(FName("UsePortion"), EInputEvent::IE_Pressed, this, &APOCharacter::UsePortion);
+
 }
 
 void APOCharacter::MoveForward(float value)
@@ -549,6 +552,37 @@ void APOCharacter::BlockEnd()
 	MovementState = EMovementState::EMS_Running;
 }
 
+void APOCharacter::UsePortion()
+{
+	if (MovementState == EMovementState::EMS_Blocking) return;
+	if (MovementState == EMovementState::EMS_GettingHit) return;
+	if (MovementState == EMovementState::EMS_Jumping) return;
+	if (MovementState == EMovementState::EMS_Dodging) return;
+	if (MovementState == EMovementState::EMS_Attacking) return;
+
+	if (PortionNum >= 1)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance && PortionMontage)
+		{
+			AnimInstance->Montage_Play(PortionMontage);
+		}
+	}
+}
+
+void APOCharacter::UsePortionEnd()
+{
+	PortionNum -= 1;
+	CharacterInfo.CharacterStat.Health = FMath::Clamp(CharacterInfo.CharacterStat.Health + 40.f, 0.f, CharacterInfo.CharacterStat.MaxHealth);
+
+	if (APOPlayerController* POController = Cast<APOPlayerController>(GetController()))
+	{
+		POController->SetHealthPercent(CharacterInfo.CharacterStat.MaxHealth, CharacterInfo.CharacterStat.Health);
+		POController->SetPortionText(PortionNum);
+	}
+	
+}
+
 void APOCharacter::BlockBreaked()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -667,7 +701,6 @@ void APOCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 		AnimInstance->Montage_JumpToSection(Section, GetHitMontage);
 	}
 }
-
 
 bool APOCharacter::IsAlive_Implementation()
 {

@@ -48,6 +48,7 @@ public:
 	void Attack();
 	void Block();
 	void BlockEnd();
+	void UsePortion();
 
 	void BlockBreaked();
 	bool bIsBlockBreaked = false;
@@ -61,6 +62,8 @@ public:
 	class UAnimMontage* BlockingMontage;
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* BlockingBreakMontage;
+	UPROPERTY(EditAnywhere)
+	class UAnimMontage* PortionMontage;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
 	float Input_FB;
@@ -91,6 +94,12 @@ public:
 	/** AIHelper */
 	virtual bool IsAlive_Implementation() override;
 	virtual bool IsPlayer_Implementation() override;
+
+	/** Portion */
+	UPROPERTY(VisibleAnywhere)
+	int32 PortionNum = 3;
+	UFUNCTION(BlueprintCallable)
+	void UsePortionEnd();
 
 private:
 	bool bCanSprint = true;
