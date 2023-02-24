@@ -29,9 +29,19 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	void SetBossHealth(float percent);
+
 	UPROPERTY(VisibleAnywhere)
 	class ULockedOnWidgetComponent* LockedOnImage;
+	UPROPERTY(VisibleAnywhere)
+	class UBossHealthBar* BossHealthWidget;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UBossHealthBar> BossWidgetClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	class USphereComponent* Sphere;
+	UFUNCTION(BlueprintCallable)
+	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 /** Weapon */
 public:

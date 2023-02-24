@@ -34,6 +34,7 @@ private:
 	APawn* ControlledPawn;
 
 public:
+
 	/** AI Perception */
 	class UAISenseConfig_Sight* SightConfig;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

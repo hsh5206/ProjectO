@@ -3,13 +3,21 @@
 
 #include "Characters/EnemyBoss.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/SphereComponent.h"
+#include "Components/ProgressBar.h"
 
 #include "HUD/LockedOnWidgetComponent.h"
+#include "Characters/EnemyAIController.h"
+#include "HUD/BossHealthBar.h"
+#include "Characters/POCharacter.h"
 
 AEnemyBoss::AEnemyBoss()
 {
 	LockedOnImage = CreateDefaultSubobject<ULockedOnWidgetComponent>(TEXT("LockedOnImage"));
 	LockedOnImage->SetupAttachment(GetRootComponent());
+
+	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	Sphere->SetupAttachment(GetRootComponent());
 
 	Tags.Add(FName("Enemy"));
 }
@@ -31,7 +39,32 @@ void AEnemyBoss::BeginPlay()
 	LockedOnImage->SetVisibility(false);
 	CharacterInfo.CharacterStat.MaxHealth = 500.f;
 	CharacterInfo.CharacterStat.Health = 500.f;
-	
+
+	if (BossWidgetClass)
+	{
+		BossHealthWidget = CreateWidget<UBossHealthBar>(GetWorld() , BossWidgetClass);
+		float Percent = CharacterInfo.CharacterStat.Health / CharacterInfo.CharacterStat.MaxHealth;
+		SetBossHealth(Percent);
+	}
+}
+
+void AEnemyBoss::SetBossHealth(float percent)
+{
+	if (BossHealthWidget)
+	{
+		BossHealthWidget->HealthBar->SetPercent(percent);
+	}
+}
+
+void AEnemyBoss::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (Cast<APOCharacter>(OtherActor))
+	{
+		if (BossHealthWidget)
+		{
+			BossHealthWidget->AddToViewport(1);
+		}
+	}
 }
 
 void AEnemyBoss::AttackCheck(float AttackRadius)
@@ -84,7 +117,6 @@ void AEnemyBoss::AttackCheck(float AttackRadius)
 				HitInterface->Execute_GetHit(WeaponResult.GetActor(), WeaponResult.ImpactPoint);
 			}
 			IgnoreActors.AddUnique(WeaponResult.GetActor());
-			UE_LOG(LogTemp, Warning, TEXT("Hit"));
 		}
 	}
 }
@@ -233,11 +265,11 @@ float AEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 		LockedOnEnemy = DamageCauser;
 	}
 
-	//if (HealthBarWidget)
-	//{
-	//	float Percent = float(CharacterInfo.CharacterStat.Health) / float(CharacterInfo.CharacterStat.MaxHealth);
-	//	HealthBarWidget->SetHealthPercent(Percent);
-	//}
+	if (BossHealthWidget)
+	{
+		float Percent = CharacterInfo.CharacterStat.Health / CharacterInfo.CharacterStat.MaxHealth;
+		SetBossHealth(Percent);
+	}
 
 	return DamageAmount;
 }
