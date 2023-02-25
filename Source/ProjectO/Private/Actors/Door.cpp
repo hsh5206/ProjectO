@@ -69,8 +69,7 @@ void ADoor::OnBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 	}
 }
 
-void ADoor::MoveLevel()
+void ADoor::MoveLevel_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MoveLevel"));
-	UGameplayStatics::OpenLevel(GetWorld(), "TestMap");
+	
 }

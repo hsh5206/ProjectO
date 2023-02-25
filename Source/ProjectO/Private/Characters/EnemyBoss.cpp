@@ -486,5 +486,7 @@ void AEnemyBoss::DeathFin()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Death"));
 	GetWorld()->GetTimerManager().ClearTimer(DeathTimerHandle);
-	TextViewWidget->RemoveFromViewport();
+	BossHealthWidget->RemoveFromParent();
+	TextViewWidget->RemoveFromParent();
+
 }

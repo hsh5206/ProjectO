@@ -39,5 +39,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UUserWidget> InteractWidgetClass;
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void MoveLevel();
 };
