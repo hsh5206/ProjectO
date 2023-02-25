@@ -16,6 +16,7 @@ ABossSkillActor_Hammer::ABossSkillActor_Hammer()
 
 	DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DefaultRoot"));
 	SetRootComponent(DefaultRoot);
+
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	ItemMesh->SetupAttachment(GetRootComponent());
 	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);

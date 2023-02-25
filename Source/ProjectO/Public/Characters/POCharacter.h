@@ -49,6 +49,8 @@ public:
 	void Block();
 	void BlockEnd();
 	void UsePortion();
+	void Interact();
+	bool bInteract = false;
 
 	void BlockBreaked();
 	bool bIsBlockBreaked = false;

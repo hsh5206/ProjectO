@@ -160,7 +160,14 @@ void APOCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Pressed, this, &APOCharacter::Block);
 	PlayerInputComponent->BindAction(FName("Block"), EInputEvent::IE_Released, this, &APOCharacter::BlockEnd);
 	PlayerInputComponent->BindAction(FName("UsePortion"), EInputEvent::IE_Pressed, this, &APOCharacter::UsePortion);
+	PlayerInputComponent->BindAction(FName("Interact"), EInputEvent::IE_Pressed, this, &APOCharacter::Interact);
 
+
+}
+
+void APOCharacter::Interact()
+{
+	bInteract = true;
 }
 
 void APOCharacter::MoveForward(float value)
