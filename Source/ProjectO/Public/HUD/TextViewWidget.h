@@ -18,5 +18,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* TextView;
 
+	UFUNCTION(BlueprintCallable)
 	void SetTextView(FText text);
 };
