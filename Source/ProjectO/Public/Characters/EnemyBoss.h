@@ -25,6 +25,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	class UBlackboardData* BBAsset;
 
+	UPROPERTY()
+	class UTextViewWidget* TextViewWidget;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UTextViewWidget> TextViewWidgetClass;
+
+	FTimerHandle DeathTimerHandle;
+	void DeathFin();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -85,6 +93,8 @@ public:
 	void Skill2AttackCheck();
 	UFUNCTION(BlueprintCallable)
 	void Skill3AttackCheck();
+
+	virtual void Death() override;
 
 /** Skill */
 	UPROPERTY(EditAnywhere)

@@ -11,6 +11,8 @@
 #include "HUD/BossHealthBar.h"
 #include "Characters/POCharacter.h"
 #include "Characters/SkillActor/BossSkillActor_Hammer.h"
+#include "HUD/TextViewWidget.h"
+#include "TimerManager.h"
 
 AEnemyBoss::AEnemyBoss()
 {
@@ -21,6 +23,7 @@ AEnemyBoss::AEnemyBoss()
 	Sphere->SetupAttachment(GetRootComponent());
 
 	Tags.Add(FName("Enemy"));
+
 }
 
 void AEnemyBoss::Tick(float DeltaTime)
@@ -48,14 +51,19 @@ void AEnemyBoss::BeginPlay()
 	Super::BeginPlay();
 
 	LockedOnImage->SetVisibility(false);
-	CharacterInfo.CharacterStat.MaxHealth = 500.f;
-	CharacterInfo.CharacterStat.Health = 500.f;
+	CharacterInfo.CharacterStat.MaxHealth = 1.f;
+	CharacterInfo.CharacterStat.Health = 1.f;
 
 	if (BossWidgetClass)
 	{
 		BossHealthWidget = CreateWidget<UBossHealthBar>(GetWorld() , BossWidgetClass);
 		float Percent = CharacterInfo.CharacterStat.Health / CharacterInfo.CharacterStat.MaxHealth;
 		SetBossHealth(Percent);
+	}
+
+	if (TextViewWidgetClass)
+	{
+		TextViewWidget = CreateWidget<UTextViewWidget>(GetWorld(), TextViewWidgetClass);
 	}
 }
 
@@ -460,4 +468,23 @@ float AEnemyBoss::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	}
 
 	return DamageAmount;
+}
+
+void AEnemyBoss::Death()
+{
+	Super::Death();
+
+	if (TextViewWidget)
+	{
+		TextViewWidget->AddToViewport();
+		TextViewWidget->SetTextView(FText::FromString(FString::Printf(TEXT("Boss Slayered"))));
+		GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &AEnemyBoss::DeathFin, 3.f, false);
+	}
+}
+
+void AEnemyBoss::DeathFin()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Death"));
+	GetWorld()->GetTimerManager().ClearTimer(DeathTimerHandle);
+	TextViewWidget->RemoveFromViewport();
 }

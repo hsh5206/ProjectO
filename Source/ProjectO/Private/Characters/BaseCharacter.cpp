@@ -143,7 +143,7 @@ void ABaseCharacter::Death()
 	auto controllerRef = GetController();
 	GetController()->UnPossess();
 	controllerRef->Destroy();
-	SetLifeSpan(5.f);
+	SetLifeSpan(3.f);
 
 	MovementState = EMovementState::EMS_Death;
 }

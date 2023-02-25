@@ -68,7 +68,7 @@ public:
 	void EquipUnequip();
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* DeathMontage;
-	void Death();
+	virtual void Death();
 
 	/** Notify Callback */
 	UFUNCTION(BlueprintCallable)
