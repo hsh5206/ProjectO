@@ -10,6 +10,7 @@
 #include "Characters/EnemyAIController.h"
 #include "HUD/BossHealthBar.h"
 #include "Characters/POCharacter.h"
+#include "Characters/SkillActor/BossSkillActor_Hammer.h"
 
 AEnemyBoss::AEnemyBoss()
 {
@@ -29,6 +30,16 @@ void AEnemyBoss::Tick(float DeltaTime)
 	if (bAttackChecking)
 	{
 		AttackCheck(60.f);
+	}
+
+	if (bSkill1Checking)
+	{
+		AttackCheck(100.f);
+	}
+
+	if (bSkill2Checking)
+	{
+		Skill2AttackCheck();
 	}
 }
 
@@ -90,7 +101,113 @@ void AEnemyBoss::AttackCheck(float AttackRadius)
 		UEngineTypes::ConvertToTraceType(ECC_Camera),
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
+		WeaponResult,
+		true,
+		FLinearColor::Gray,
+		FLinearColor::Blue,
+		1.f
+	);
+
+	if (IsHit)
+	{
+		if (WeaponResult.GetActor()->ActorHasTag(FName("Player")))
+		{
+			if (Cast<ABaseCharacter>(WeaponResult.GetActor())->MovementState == EMovementState::EMS_GettingHit) return;
+
+			UGameplayStatics::ApplyDamage(WeaponResult.GetActor(),
+				Damage,
+				GetInstigator()->GetController(),
+				this,
+				UDamageType::StaticClass()
+			);
+
+			IHitInterface* HitInterface = Cast<IHitInterface>(WeaponResult.GetActor());
+			if (HitInterface)
+			{
+				HitInterface->Execute_GetHit(WeaponResult.GetActor(), WeaponResult.ImpactPoint);
+			}
+			IgnoreActors.AddUnique(WeaponResult.GetActor());
+		}
+	}
+}
+
+void AEnemyBoss::Skill2AttackCheck()
+{
+	FVector Location = GetMesh()->GetSocketLocation(FName("Skill2"));
+
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	for (AActor* Actor : IgnoreActors)
+	{
+		ActorsToIgnore.AddUnique(Actor);
+	}
+
+	FHitResult WeaponResult;
+
+	const bool IsHit = UKismetSystemLibrary::SphereTraceSingle(
+		this,
+		Location,
+		Location,
+		125.f,
+		UEngineTypes::ConvertToTraceType(ECC_Camera),
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		WeaponResult,
+		true,
+		FLinearColor::Gray,
+		FLinearColor::Blue,
+		1.f
+	);
+
+	if (IsHit)
+	{
+		if (WeaponResult.GetActor()->ActorHasTag(FName("Player")))
+		{
+			if (Cast<ABaseCharacter>(WeaponResult.GetActor())->MovementState == EMovementState::EMS_GettingHit) return;
+
+			UGameplayStatics::ApplyDamage(WeaponResult.GetActor(),
+				Damage,
+				GetInstigator()->GetController(),
+				this,
+				UDamageType::StaticClass()
+			);
+
+			IHitInterface* HitInterface = Cast<IHitInterface>(WeaponResult.GetActor());
+			if (HitInterface)
+			{
+				HitInterface->Execute_GetHit(WeaponResult.GetActor(), WeaponResult.ImpactPoint);
+			}
+			IgnoreActors.AddUnique(WeaponResult.GetActor());
+		}
+	}
+}
+
+void AEnemyBoss::Skill3AttackCheck()
+{
+	FVector Location = GetMesh()->GetSocketLocation(FName("root"));
+
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	for (AActor* Actor : IgnoreActors)
+	{
+		ActorsToIgnore.AddUnique(Actor);
+	}
+
+	FHitResult WeaponResult;
+
+	const bool IsHit = UKismetSystemLibrary::SphereTraceSingle(
+		this,
+		Location,
+		Location,
+		400.f,
+		UEngineTypes::ConvertToTraceType(ECC_Camera),
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
 		WeaponResult,
 		true,
 		FLinearColor::Gray,
@@ -170,7 +287,7 @@ void AEnemyBoss::AttackSkill_2_Implementation()
 	if (AnimInstance && SkillMontage2)
 	{
 		MovementState = EMovementState::EMS_Attacking;
-		AnimInstance->Montage_Play(SkillMontage2);
+		AnimInstance->Montage_Play(SkillMontage2, 0.8f);
 	}
 }
 
@@ -190,7 +307,7 @@ void AEnemyBoss::AttackSkill_3_Implementation()
 	}
 }
 
-void AEnemyBoss::Grab_Implementation()
+void AEnemyBoss::AttackSkill_4_Implementation()
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
@@ -199,10 +316,78 @@ void AEnemyBoss::Grab_Implementation()
 		AnimInstance->Montage_Stop(0.f, GetHitMontage);
 	}
 
-	if (AnimInstance && GrabMontage)
+	if (AnimInstance && SkillMontage4)
 	{
 		MovementState = EMovementState::EMS_Attacking;
-		AnimInstance->Montage_Play(GrabMontage);
+		AnimInstance->Montage_Play(SkillMontage4);
+
+		if (SkillActor4)
+		{
+			SpawnSkill4Actor();
+		}
+	}
+}
+
+void AEnemyBoss::SpawnSkill4Actor()
+{
+	Skill4ActorNum += 1;
+
+	FVector Location = GetMesh()->GetSocketLocation(FName("root"));
+	FRotator Rotation = GetMesh()->GetSocketRotation(FName("root"));
+
+	if (Skill4ActorNum == 1)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SpawnSkill4ActorTimer);
+		AActor* Skill = GetWorld()->SpawnActor<AActor>(SkillActor4, GetMesh()->GetSocketLocation(FName("root")), Rotation);
+		Skill->SetOwner(this);
+		GetWorld()->GetTimerManager().SetTimer(SpawnSkill4ActorTimer, this, &AEnemyBoss::SpawnSkill4Actor, 0.5f, false);
+
+		//Skill->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	}
+	else if (Skill4ActorNum == 2)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SpawnSkill4ActorTimer);
+
+		AActor* Skill = GetWorld()->SpawnActor<AActor>(SkillActor4, FVector(Location.X, Location.Y - 70.f, Location.Z), Rotation);
+		Skill->SetOwner(this);
+		GetWorld()->GetTimerManager().SetTimer(SpawnSkill4ActorTimer, this, &AEnemyBoss::SpawnSkill4Actor, 0.5f, false);
+
+		//Skill->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	}
+	else if (Skill4ActorNum == 3)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SpawnSkill4ActorTimer);
+
+		AActor* Skill = GetWorld()->SpawnActor<AActor>(SkillActor4, FVector(Location.X, Location.Y + 70.f, Location.Z), Rotation);
+		Skill->SetOwner(this);
+		GetWorld()->GetTimerManager().SetTimer(SpawnSkill4ActorTimer, this, &AEnemyBoss::SpawnSkill4Actor, 0.5f, false);
+
+		//Skill->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	}
+	else if (Skill4ActorNum == 4)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SpawnSkill4ActorTimer);
+
+		AActor* Skill = GetWorld()->SpawnActor<AActor>(SkillActor4, FVector(Location.X, Location.Y - 140.f, Location.Z), Rotation);
+		Skill->SetOwner(this);
+		GetWorld()->GetTimerManager().SetTimer(SpawnSkill4ActorTimer, this, &AEnemyBoss::SpawnSkill4Actor, 0.5f, false);
+
+		//Skill->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	}
+	else if (Skill4ActorNum == 5)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SpawnSkill4ActorTimer);
+
+		AActor* Skill = GetWorld()->SpawnActor<AActor>(SkillActor4, FVector(Location.X, Location.Y + 140.f, Location.Z), Rotation);
+		Skill->SetOwner(this);
+		GetWorld()->GetTimerManager().SetTimer(SpawnSkill4ActorTimer, this, &AEnemyBoss::SpawnSkill4Actor, 0.5f, false);
+
+		//Skill->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().ClearTimer(SpawnSkill4ActorTimer);
+		Skill4ActorNum = 0;
 	}
 }
 
@@ -217,8 +402,11 @@ void AEnemyBoss::GetHit_Implementation(const FVector& ImpactPoint)
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
 	if (AnimInstance && AttackBasicMontage && AnimInstance->Montage_IsPlaying(AttackBasicMontage)) return;
+	if (AnimInstance && SkillMontage1 && AnimInstance->Montage_IsPlaying(SkillMontage1)) return;
+	if (AnimInstance && SkillMontage2 && AnimInstance->Montage_IsPlaying(SkillMontage2)) return;
+	if (AnimInstance && SkillMontage3 && AnimInstance->Montage_IsPlaying(SkillMontage3)) return;
+	if (AnimInstance && SkillMontage4 && AnimInstance->Montage_IsPlaying(SkillMontage4)) return;
 	if (AnimInstance && DeathMontage && AnimInstance->Montage_IsPlaying(DeathMontage)) return;
-	if (AnimInstance && EquipMontage && AnimInstance->Montage_IsPlaying(EquipMontage)) return;
 
 	FVector Forward = GetActorForwardVector();
 	FVector ImpactLowered(ImpactPoint.X, ImpactPoint.Y, GetActorLocation().Z);

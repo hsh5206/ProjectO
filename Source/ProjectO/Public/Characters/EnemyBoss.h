@@ -61,7 +61,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void AttackSkill_3();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void Grab();
+	void AttackSkill_4();
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* AttackBasicMontage;
 	UPROPERTY(EditAnywhere)
@@ -71,9 +71,25 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UAnimMontage* SkillMontage3;
 	UPROPERTY(EditAnywhere)
-	class UAnimMontage* GrabMontage;
+	class UAnimMontage* SkillMontage4;
 
 	void AttackCheck(float AttackRadius);
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bAttackChecking = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bSkill1Checking = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bSkill2Checking = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bSkill3Checking = false;
+	void Skill2AttackCheck();
+	UFUNCTION(BlueprintCallable)
+	void Skill3AttackCheck();
+
+/** Skill */
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ABossSkillActor_Hammer> SkillActor4;
+	void SpawnSkill4Actor();
+	FTimerHandle SpawnSkill4ActorTimer;
+	int32 Skill4ActorNum = 0;
 };
