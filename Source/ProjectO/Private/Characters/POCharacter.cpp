@@ -19,6 +19,7 @@
 #include "Characters/POPlayerController.h"
 #include "HUD/EnemyHealthBarWidgetComponent.h"
 #include "HUD/MainWidget.h"
+#include "POGameInstance.h"
 
 APOCharacter::APOCharacter()
 {
@@ -54,6 +55,19 @@ void APOCharacter::BeginPlay()
 	
 	Controller = Cast<APOPlayerController>(GetController());
 	DodgeEffect->Deactivate();
+
+	UPOGameInstance* GI = Cast<UPOGameInstance>(GetGameInstance());
+	GI->OnTransEndDelegate.AddDynamic(this, &APOCharacter::TransEnded);
+	GI->LoadGameFromTrans(this, FString::Printf(TEXT("AutoSave")), 0);
+
+	Controller->SetHealthPercent(CharacterInfo.CharacterStat.MaxHealth, CharacterInfo.CharacterStat.Health);
+	Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
+	Controller->SetPortionText(PortionNum);
+}
+
+void APOCharacter::TransEnded()
+{
+	
 }
 
 void APOCharacter::Tick(float DeltaTime)
@@ -283,7 +297,7 @@ void APOCharacter::Dodge()
 	if (MovementState == EMovementState::EMS_Blocking) return;
 	if (MovementState == EMovementState::EMS_Jumping) return;
 	if (MovementState == EMovementState::EMS_Dodging) return;
-	if (MovementState == EMovementState::EMS_Attacking) return;
+	//if (MovementState == EMovementState::EMS_Attacking) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 

@@ -24,8 +24,8 @@ public:
 	float MaxHealth = 100 + Vigor * 5;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float Health = MaxHealth;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float MaxStamina = 100 + Endurance * 5;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float Stamina = MaxStamina;
 };

@@ -98,10 +98,12 @@ public:
 	virtual bool IsPlayer_Implementation() override;
 
 	/** Portion */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 PortionNum = 3;
 	UFUNCTION(BlueprintCallable)
 	void UsePortionEnd();
+
+	void TransEnded();
 
 private:
 	bool bCanSprint = true;

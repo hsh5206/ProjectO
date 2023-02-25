@@ -26,6 +26,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* TriggerBox;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	class APOCharacter* InsideCharacter = nullptr;
 
 	UFUNCTION(BlueprintCallable)

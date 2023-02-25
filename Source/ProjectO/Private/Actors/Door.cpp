@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "Characters/POCharacter.h"
+#include "POGameInstance.h"
 
 ADoor::ADoor()
 {
@@ -71,5 +72,5 @@ void ADoor::OnBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 void ADoor::MoveLevel_Implementation()
 {
-	
+
 }
