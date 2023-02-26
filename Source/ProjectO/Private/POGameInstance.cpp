@@ -22,13 +22,25 @@ void UPOGameInstance::SaveGame(float Health, float Stamina, int32 PortionNum, FV
 	SG->Location = Location;
 	SG->Rotation = Rotation;
 
+	UGameplayStatics::SaveGameToSlot(SG, FString::Printf(TEXT("Save")), 1);
+}
+
+void UPOGameInstance::SaveGameFromTrans(float Health, float Stamina, int32 PortionNum, FVector Location, FRotator Rotation)
+{
+	UPOSaveGame* SG = Cast<UPOSaveGame>(UGameplayStatics::CreateSaveGameObject(UPOSaveGame::StaticClass()));
+	SG->Health = Health;
+	SG->Stamina = Stamina;
+	SG->PortionNum = PortionNum;
+	SG->Location = Location;
+	SG->Rotation = Rotation;
+
 	UGameplayStatics::SaveGameToSlot(SG, FString::Printf(TEXT("AutoSave")), 0);
 }
 
-void UPOGameInstance::LoadGame(APOCharacter* Character, FString SlotName, int32 index)
+void UPOGameInstance::LoadGame(APOCharacter* Character)
 {
 	UPOSaveGame* LG = Cast<UPOSaveGame>(UGameplayStatics::CreateSaveGameObject(UPOSaveGame::StaticClass()));
-	LG = Cast<UPOSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, index));
+	LG = Cast<UPOSaveGame>(UGameplayStatics::LoadGameFromSlot(FString::Printf(TEXT("Save")), 1));
 
 	if (LG)
 	{

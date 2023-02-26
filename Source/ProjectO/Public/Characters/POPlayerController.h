@@ -17,9 +17,9 @@ class PROJECTO_API APOPlayerController : public APlayerController
 public:
 	virtual void PostInitializeComponents() override;
 	APOPlayerController();
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	class UMainWidget* MainWidget;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	TSubclassOf<class UMainWidget> MainWidgetClass;
 
 	void SetStaminaPercent(float Max, float Cur);

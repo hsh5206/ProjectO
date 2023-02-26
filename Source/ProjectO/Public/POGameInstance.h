@@ -24,7 +24,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SaveGame(float Health, float Stamina, int32 PortionNum, FVector Location, FRotator Rotation);
 	UFUNCTION(BlueprintCallable)
-	void LoadGame(class APOCharacter* Character, FString SlotName, int32 index);
+	void SaveGameFromTrans(float Health, float Stamina, int32 PortionNum, FVector Location, FRotator Rotation);
+	UFUNCTION(BlueprintCallable)
+	void LoadGame(class APOCharacter* Character);
 	UFUNCTION(BlueprintCallable)
 	void LoadGameFromTrans(APOCharacter* Character, FString SlotName, int32 index);
 };

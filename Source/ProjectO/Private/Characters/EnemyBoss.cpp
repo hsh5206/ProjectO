@@ -51,8 +51,8 @@ void AEnemyBoss::BeginPlay()
 	Super::BeginPlay();
 
 	LockedOnImage->SetVisibility(false);
-	CharacterInfo.CharacterStat.MaxHealth = 1.f;
-	CharacterInfo.CharacterStat.Health = 1.f;
+	CharacterInfo.CharacterStat.MaxHealth = 700.f;
+	CharacterInfo.CharacterStat.Health = 700.f;
 
 	if (BossWidgetClass)
 	{
