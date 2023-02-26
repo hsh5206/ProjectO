@@ -20,6 +20,11 @@ public:
 	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
 
+	UPROPERTY()
+	class UUserWidget* DeathWidget;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UUserWidget> DeathWidgetClass;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -104,6 +109,7 @@ public:
 	void UsePortionEnd();
 
 	void TransEnded();
+	virtual void Death() override;
 
 private:
 	bool bCanSprint = true;

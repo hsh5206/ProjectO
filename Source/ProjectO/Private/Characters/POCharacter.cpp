@@ -63,6 +63,11 @@ void APOCharacter::BeginPlay()
 	Controller->SetHealthPercent(CharacterInfo.CharacterStat.MaxHealth, CharacterInfo.CharacterStat.Health);
 	Controller->SetStaminaPercent(CharacterInfo.CharacterStat.MaxStamina, CharacterInfo.CharacterStat.Stamina);
 	Controller->SetPortionText(PortionNum);
+
+	if (DeathWidgetClass)
+	{
+		DeathWidget = CreateWidget<UUserWidget>(GetWorld(), DeathWidgetClass);
+	}
 }
 
 void APOCharacter::TransEnded()
@@ -666,6 +671,7 @@ void APOCharacter::GetHit_Implementation(const FVector& ImpactPoint)
 	Super::GetHit_Implementation(ImpactPoint);
 
 	if (MovementState == EMovementState::EMS_Dodging) return;
+	if (MovementState == EMovementState::EMS_Death) return;
 
 	if (MovementState == EMovementState::EMS_Blocking) {
 		if (CharacterInfo.CharacterStat.Stamina >= 20.f)
@@ -731,4 +737,28 @@ bool APOCharacter::IsAlive_Implementation()
 bool APOCharacter::IsPlayer_Implementation()
 {
 	return true;
+}
+
+void APOCharacter::Death()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+
+	if (DeathSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+	}
+
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetLifeSpan(3.f);
+
+	MovementState = EMovementState::EMS_Death;
+
+	if (DeathWidget)
+	{
+		DeathWidget->AddToViewport();
+	}
 }
