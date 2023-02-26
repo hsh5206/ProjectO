@@ -84,44 +84,53 @@ void ABossSkillActor_Hammer::Rotate()
 {
 	if (GetOwner())
 	{
-		AttackLocation = Cast<AEnemyBoss>(GetOwner())->LockedOnEnemy->GetTargetLocation();
-		Decal = GetWorld()->SpawnActor<ADecalActor>(FVector(AttackLocation.X, AttackLocation.Y, AttackLocation.Z-100.f), FRotator());
-
-		if (Decal)
+		if (Cast<AEnemyBoss>(GetOwner())->LockedOnEnemy)
 		{
-			UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(M_UnderPlayerDecal, this);
-			Decal->SetDecalMaterial(DynMaterial);
+			AttackLocation = Cast<AEnemyBoss>(GetOwner())->LockedOnEnemy->GetTargetLocation();
+			Decal = GetWorld()->SpawnActor<ADecalActor>(FVector(AttackLocation.X, AttackLocation.Y, AttackLocation.Z - 100.f), FRotator());
 
-			Decal->SetLifeSpan(1.3f);
-			Decal->GetDecal()->DecalSize = FVector(150.f, 150.f, 150.f);
-			
-			FOnTimelineFloat onTimelineCallback;
-			FOnTimelineEventStatic onTimelineFinishedCallback;
-
-			if (FloatCurve)
+			if (Decal)
 			{
-				Timeline->SetTimelineLength(1.3f);
+				UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(M_UnderPlayerDecal, this);
+				Decal->SetDecalMaterial(DynMaterial);
 
-				onTimelineCallback.BindUFunction(this, FName{ TEXT("TimelineCallback") });
-				onTimelineFinishedCallback.BindUFunction(this, FName{ TEXT("TimelineFinishedCallback") });
+				Decal->SetLifeSpan(1.3f);
+				Decal->GetDecal()->DecalSize = FVector(150.f, 150.f, 150.f);
 
-				Timeline->AddInterpFloat(FloatCurve, onTimelineCallback);
-				Timeline->SetTimelineFinishedFunc(onTimelineFinishedCallback);
+				FOnTimelineFloat onTimelineCallback;
+				FOnTimelineEventStatic onTimelineFinishedCallback;
 
-				Timeline->PlayFromStart();
+				if (FloatCurve)
+				{
+					Timeline->SetTimelineLength(1.3f);
+
+					onTimelineCallback.BindUFunction(this, FName{ TEXT("TimelineCallback") });
+					onTimelineFinishedCallback.BindUFunction(this, FName{ TEXT("TimelineFinishedCallback") });
+
+					Timeline->AddInterpFloat(FloatCurve, onTimelineCallback);
+					Timeline->SetTimelineFinishedFunc(onTimelineFinishedCallback);
+
+					Timeline->PlayFromStart();
+				}
 			}
+
+
+			FLatentActionInfo Info;
+			Info.CallbackTarget = this;
+			Info.Linkage = 0;
+			Info.ExecutionFunction = FName("Attack");
+
+			FRotator Rotation = (ItemMesh->GetComponentLocation() - AttackLocation).GetSafeNormal().Rotation();
+			FRotator RelativeRotationFromRoot = UKismetMathLibrary::InverseTransformRotation(DefaultRoot->GetComponentTransform(), Rotation);
+
+			UKismetSystemLibrary::MoveComponentTo(ItemMesh, ItemMesh->GetRelativeLocation(), FRotator(0.f, -RelativeRotationFromRoot.Yaw, 0.f), true, true, 1.f, false, EMoveComponentAction::Move, Info);
+		}
+		else
+		{
+			SetLifeSpan(1.f);
 		}
 	}
 
-	FLatentActionInfo Info;
-	Info.CallbackTarget = this;
-	Info.Linkage = 0;
-	Info.ExecutionFunction = FName("Attack");
-
-	FRotator Rotation = (ItemMesh->GetComponentLocation() - AttackLocation).GetSafeNormal().Rotation();
-	FRotator RelativeRotationFromRoot = UKismetMathLibrary::InverseTransformRotation(DefaultRoot->GetComponentTransform(), Rotation);
-
-	UKismetSystemLibrary::MoveComponentTo(ItemMesh, ItemMesh->GetRelativeLocation(), FRotator(0.f, -RelativeRotationFromRoot.Yaw, 0.f), true, true, 1.f, false, EMoveComponentAction::Move, Info);
 }
 
 void ABossSkillActor_Hammer::Attack()

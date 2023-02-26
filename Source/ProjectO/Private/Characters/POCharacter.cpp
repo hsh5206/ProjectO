@@ -741,6 +741,7 @@ bool APOCharacter::IsPlayer_Implementation()
 
 void APOCharacter::Death()
 {
+	if (MovementState == EMovementState::EMS_Death) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && DeathMontage)
 	{
